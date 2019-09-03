@@ -1,0 +1,1 @@
+{"rustc":15611408172799703797,"features":"[\"alloc\", \"default\", \"lexical\", \"lexical-core\", \"std\"]","target":10429514197457385088,"profile":9935990280773120926,"path":13236505541917307532,"deps":[[5586901009033060369,"version_check",false,14692412952460551947]],"local":[{"Precalculated":"5.0.1"}],"rustflags":[],"metadata":9858338621379386705}
