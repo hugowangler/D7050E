@@ -3,45 +3,60 @@ use nom::IResult;
 use nom::character::complete::digit1;
 use nom::FindSubstring;
 
-
+#[derive(Debug)]
 enum Node {
-    Root {left_child: Box<Node>, right_child: Box<Node>, operation: String},
+    Root {
+        operation: char,
+        left_child: Box<Node>,
+        right_child: Box<Node>
+    },
     Leaf(i32),
     Nil
 }
 
-/*
-fn expr_parser(input: &str) {
-    create_tree(input); // Build the tree
-    // Calculate expression
+fn expr_parser(input: &str) -> (Node) {
+    create_tree(&input)
 }
 
-fn create_tree(input: &str) {
-    let parsed = find_digit(input).unwrap();
-    let left_child = create_node(digit.0);
-    let root = create_tree(digit.1);
-}
+fn create_tree(input: &str) -> (Node) {
+    if input.is_empty() {
+        Node::Nil
+    } else if input.len() <= 1 {
+        create_leaf(&input)
+    } else {
+        let char_pos = parse_char(&input);
+        let op = char_pos.1;
+        let op_pos = char_pos.0;
 
-fn create_node(input: &str) -> (Node) {
-    if input.is_empty() { // Was at leaf so no more nodes
-        println!("Empty leaf");
-        return Node::Nil
-    } else {    // New node
-        if input.digit
+        let left_child = create_tree(&input[..op_pos]);
+        let right_child = create_tree(&input[op_pos+1..]);
+
+        create_root(left_child, right_child, op)
     }
-} */
+}
+
+fn create_leaf(input: &str) -> (Node) {
+    let num = parse_digit(&input).unwrap().1.parse::<i32>().unwrap();
+    Node::Leaf(num)
+} 
+
+fn create_root(l_child: Node, r_child: Node, op: char) -> (Node) {
+    Node::Root{left_child: Box::new(l_child), right_child: Box::new(r_child), operation: op}
+}
 
 fn parse_digit(input: &str) -> IResult<&str, &str> {
     digit1(input)
 }
 
-fn parse_char(input: &str) -> Option<usize> {
-    input.find_substring("+")
+fn parse_char(input: &str) -> (usize, char) {
+    let plus_pos = input.find_substring("+");
+    (plus_pos.unwrap(), '+')
 }
 
 fn main() {
-    let input = "1 + 2 + 3";
+    let input = "1+2+3";
     println!("input = {}", input);
-    parse_char(input);
+    let result = expr_parser(&input);
+    println!("result ={:#?}", result);
 }
 
