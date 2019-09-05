@@ -1,3 +1,0 @@
-cargo:rerun-if-changed=build.rs
-cargo:rustc-cfg=has_range_inclusive
-cargo:rustc-cfg=has_pointer_methods
