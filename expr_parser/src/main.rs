@@ -2,6 +2,7 @@ extern crate nom;
 use nom::IResult;
 use nom::character::complete::digit1;
 use nom::FindSubstring;
+use nom::branch::alt;
 
 #[derive(Debug)]
 enum Node {
@@ -55,6 +56,7 @@ fn parse_digit(input: &str) -> IResult<&str, &str> {
 
 
 fn parse_char(input: &str) -> (Option<usize>, char) {
+    alt(find_substring("+"), )
     (input.find_substring("+"), '+')
 }
 
