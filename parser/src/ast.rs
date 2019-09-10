@@ -1,41 +1,19 @@
 use std::fmt::{Debug, Error, Formatter};
 
-pub enum Expr {
+
+#[derive(Debug)]
+pub enum Node {
     Number(i32),
-    Op(Box<Expr>, Opcode, Box<Expr>),
-    Variable(String),
+    Var(String),
+    Op(Box<Node>, Opcode, Box<Node>),
+    Let{var: Box<Node>, expr: Box<Node>},
     Error
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Opcode {
     Mul,
     Div,
     Add,
     Sub,
-}
-
-
-impl Debug for Expr {
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
-        use self::Expr::*;
-        match &*self {
-            Number(n) => write!(fmt, "{:?}", n),
-            Op(ref l, op, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
-            Variable(v) => write!(fmt, "{:?}", v),
-            Error => write!(fmt, "error"),
-        }
-    }
-}
-
-impl Debug for Opcode {
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
-        use self::Opcode::*;
-        match *self {
-            Mul => write!(fmt, "*"),
-            Div => write!(fmt, "/"),
-            Add => write!(fmt, "+"),
-            Sub => write!(fmt, "-"),
-        }
-    }
 }

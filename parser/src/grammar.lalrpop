@@ -1,10 +1,14 @@
 use std::str::FromStr;
-use crate::ast::{Expr, Opcode};
+
+use crate::ast::{
+    Node,
+    Opcode
+};
 
 grammar;
 
-pub Expr: Box<Expr> = {
-    Expr ExprOp Factor => Box::new(Expr::Op(<>)),
+pub Expr: Box<Node> = {
+    Expr ExprOp Factor => Box::new(Node::Op(<>)),
     Factor,
 };
 
@@ -13,10 +17,9 @@ ExprOp: Opcode = {
     "-" => Opcode::Sub,
 };
 
-Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::Op(<>)),
+Factor: Box<Node> = {
+    Factor FactorOp Term => Box::new(Node::Op(<>)),
     Term,
-    Var,
 };
 
 FactorOp: Opcode = {
@@ -24,19 +27,27 @@ FactorOp: Opcode = {
     "/" => Opcode::Div,
 };
 
-Term: Box<Expr> = {
-    Num => Box::new(Expr::Number(<>)),
+Term: Box<Node> = {
+    Num => Box::new(Node::Number(<>)),
+    Var => Box::new(Node::Var(<>)),
     "(" <Expr> ")",
 };
 
-Var: Box<Expr> = {
-    Identifier => Box::new(Expr::Variable(<>)),
-} 
+Var = Identifier;
+
+pub Let: Box<Node> = {
+    "let" <name: Identifier> "=" <expr: Expr> ";" => {
+        Box::new(Node::Let{
+            var: Box::new(Node::Var(name)),
+            expr: expr
+        })
+    }
+}
 
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
 
 Identifier: String = {
-    r"[a-zA-Z][a-zA-Z0-9_]*" => <>.to_string()
+    r"[a-zA-Z][a-zA-Z0-9_]*" => String::from(<>)
 };
