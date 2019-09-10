@@ -1,16 +1,12 @@
-use std::fmt::{Debug, Error, Formatter};
-
-
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Node {
     Number(i32),
     Var(String),
     Op(Box<Node>, Opcode, Box<Node>),
     Let{var: Box<Node>, expr: Box<Node>},
-    Error
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, PartialEq)]
 pub enum Opcode {
     Mul,
     Div,
