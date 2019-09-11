@@ -1,13 +1,14 @@
 #[macro_use] extern crate lalrpop_util;
+mod parse;
+mod ast;
+mod types;
 
-lalrpop_mod!(pub grammar); // synthesized by LALRPOP
-pub mod ast;
+#[allow(unused_imports)]
+use parse::{
+    expr_parser,
+    let_parser
+};
 
 fn main() {
-    println!("Hello, world!");
-    let expr = grammar::LetParser::new()
-        .parse("let a = 2 + 3 - 5;")
-        .unwrap();
-    //assert_eq!(expr, "(2 + a)");
-    println!("expr = {:#?}", expr);
+    println!("{:#?}", &let_parser::parse("let a : i32 = b + 3;"));
 }
