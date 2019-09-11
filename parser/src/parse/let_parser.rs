@@ -22,4 +22,12 @@ mod tests {
     fn test_let_expr() {
         assert!(parse("let b = 2 + a;").is_ok());
     }
+
+    #[test]
+    fn test_let_op() {
+        assert!(parse("let b = 1 + 2;").is_ok());   // Add
+        assert!(parse("let a = 2 - b;").is_ok());   // Sub
+        assert!(parse("let b = 2 / a;").is_ok());   // Div
+        assert!(parse("let b = 2 * a;").is_ok());   // Mul
+    }
 }
