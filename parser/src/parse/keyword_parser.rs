@@ -2,7 +2,7 @@ use super::ParseError;
 use crate::ast::Node;
 
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
-    let result = crate::parse::grammar::LetParser::new().parse(s);
+    let result = crate::parse::grammar::KeywordParser::new().parse(s);
     return match result {
         Ok(s) => Ok(s),
         Err(e) => Err(ParseError{message: e.to_string()}),
@@ -11,7 +11,7 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::parse;
 
     #[test]
     fn test_let_number() {
@@ -30,4 +30,5 @@ mod tests {
         assert!(parse("let b : i8 = 2 / a;").is_ok());    // Div
         assert!(parse("let b : i16 = 2 * a;").is_ok());   // Mul
     }
+
 }

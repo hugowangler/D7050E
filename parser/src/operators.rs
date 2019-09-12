@@ -7,7 +7,18 @@ pub enum BinOpcode {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum BoolOpcode {
+pub enum LogOpcode {
     AND,
     OR,
+    NOT
+}
+
+#[derive(Debug, PartialEq)]
+pub enum RelOpcode {
+    EQ,
+    NEQ,
+    GT,
+    LT,
+    LEQ,
+    GEQ
 }

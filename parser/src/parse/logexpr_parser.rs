@@ -2,7 +2,7 @@ use super::ParseError;
 use crate::ast::Node;
 
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
-    let result = crate::parse::grammar::ExprParser::new().parse(s);
+    let result = crate::parse::grammar::LogExprParser::new().parse(s);
     return match result {
         Ok(s) => Ok(s),
         Err(e) => Err(ParseError{message: e.to_string()}),
