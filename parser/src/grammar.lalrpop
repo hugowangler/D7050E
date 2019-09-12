@@ -1,32 +1,32 @@
 use std::str::FromStr;
 
 use crate::types::LiteralType;
-
-use crate::ast::{
-    Node,
-    Opcode
+use crate::ast::Node;
+use crate::operators::{
+    BinOpcode,
+    BoolOpcode
 };
 
 grammar;
 
 pub Expr: Box<Node> = {
-    Expr ExprOp Factor => Box::new(Node::Op(<>)),
+    Expr ExprOp Factor => Box::new(Node::BinOp(<>)),
     Factor,
 };
 
-ExprOp: Opcode = {
-    "+" => Opcode::Add,
-    "-" => Opcode::Sub,
+ExprOp: BinOpcode = {
+    "+" => BinOpcode::Add,
+    "-" => BinOpcode::Sub,
 };
 
 Factor: Box<Node> = {
-    Factor FactorOp Term => Box::new(Node::Op(<>)),
+    Factor FactorOp Term => Box::new(Node::BinOp(<>)),
     Term,
 };
 
-FactorOp: Opcode = {
-    "*" => Opcode::Mul,
-    "/" => Opcode::Div,
+FactorOp: BinOpcode = {
+    "*" => BinOpcode::Mul,
+    "/" => BinOpcode::Div,
 };
 
 Term: Box<Node> = {
@@ -37,14 +37,28 @@ Term: Box<Node> = {
 
 Var = Identifier;
 
+
+// pub Let: Box<Node> = {
+//     "let" <var: Var> ":" <typ: LitType> "=" <expr: Expr> ";" => {
+//         Box::new(Node::Let{
+//             var: Box::new(Node::AssignVar{name: var, var_type: typ}),
+//             expr: expr
+//         })
+//     }
+// };
+
+
 pub Let: Box<Node> = {
-    "let" <var: Var> ":" <typ: LitType> "=" <expr: Expr> ";" => {
-        Box::new(Node::Let{
-            var: Box::new(Node::AssignVar{name: var, var_type: typ}),
-            expr: expr
-        })
+    <a:Assign> <e:Expr> ";" => {
+        Box::new(Node::Let{var: a, expr: e})
     }
 };
+
+Assign: Box<Node> = {
+    "let" <var: Var> ":" <typ: LitType> "=" => {
+        Box::new(Node::AssignVar{name: var, var_type: typ})
+    }
+}
 
 LitType: LiteralType = {
     "bool" => LiteralType::Bool,
