@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::types::Type;
+use crate::types::LiteralType;
 
 use crate::ast::{
     Node,
@@ -38,7 +38,7 @@ Term: Box<Node> = {
 Var = Identifier;
 
 pub Let: Box<Node> = {
-    "let" <var: Var> ":" <typ: VarType> "=" <expr: Expr> ";" => {
+    "let" <var: Var> ":" <typ: LitType> "=" <expr: Expr> ";" => {
         Box::new(Node::Let{
             var: Box::new(Node::AssignVar{name: var, var_type: typ}),
             expr: expr
@@ -46,31 +46,31 @@ pub Let: Box<Node> = {
     }
 };
 
-VarType: Type = {
-    "bool" => Type::Bool,
-    "char" => Type::Char,
+LitType: LiteralType = {
+    "bool" => LiteralType::Bool,
     
     // Singed
-    "i8" => Type::I8,
-    "i16" => Type::I16,
-    "i32" => Type::I32,
-    "i64" => Type::I64,
-    "isize" => Type::Isize,
+    "i8" => LiteralType::I8,
+    "i16" => LiteralType::I16,
+    "i32" => LiteralType::I32,
+    "i64" => LiteralType::I64,
+    "isize" => LiteralType::Isize,
 
     // Unsigned
-    "u8" => Type::U8,
-    "u16" => Type::U16,
-    "u32" => Type::U32,
-    "u64" => Type::U64,
-    "usize" => Type::Usize,
+    "u8" => LiteralType::U8,
+    "u16" => LiteralType::U16,
+    "u32" => LiteralType::U32,
+    "u64" => LiteralType::U64,
+    "usize" => LiteralType::Usize,
 
     // Floats
-    "f32" => Type::F32,
-    "f64" => Type::F64,
+    "f32" => LiteralType::F32,
+    "f64" => LiteralType::F64,
     
     //array,
     //slice,
-    "str" => Type::Str,
+    "str" => LiteralType::Str,
+    "char" => LiteralType::Char,
 
 };
 

@@ -27,7 +27,7 @@ mod tests {
     fn test_let_op() {
         assert!(parse("let b : i32 = 1 + 2;").is_ok());   // Add
         assert!(parse("let a : u32 = 2 - b;").is_ok());   // Sub
-        assert!(parse("let b : i8 = 2 / a;").is_ok());   // Div
+        assert!(parse("let b : i8 = 2 / a;").is_ok());    // Div
         assert!(parse("let b : i16 = 2 * a;").is_ok());   // Mul
     }
 }

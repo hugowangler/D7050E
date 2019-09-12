@@ -1,6 +1,6 @@
 
 #[derive(Debug, PartialEq)]
-pub enum Type {
+pub enum LiteralType {
     Bool,
     Char,
 
@@ -21,9 +21,7 @@ pub enum Type {
     // Floats
     F32,
     F64,
-    
-    Array,
-    Slice,
+
+    // Strings
     Str,
-    Tuple
 }
