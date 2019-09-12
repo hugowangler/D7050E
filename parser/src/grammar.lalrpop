@@ -37,17 +37,6 @@ Term: Box<Node> = {
 
 Var = Identifier;
 
-
-// pub Let: Box<Node> = {
-//     "let" <var: Var> ":" <typ: LitType> "=" <expr: Expr> ";" => {
-//         Box::new(Node::Let{
-//             var: Box::new(Node::AssignVar{name: var, var_type: typ}),
-//             expr: expr
-//         })
-//     }
-// };
-
-
 pub Let: Box<Node> = {
     <a:Assign> <e:Expr> ";" => {
         Box::new(Node::Let{var: a, expr: e})
