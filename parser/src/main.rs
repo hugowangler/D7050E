@@ -2,6 +2,7 @@
 mod parse;
 mod ast;
 mod types;
+mod operators;
 
 #[allow(unused_imports)]
 use parse::{
