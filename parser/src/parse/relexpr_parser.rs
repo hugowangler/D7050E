@@ -14,28 +14,28 @@ mod tests {
     use super::parse;
 
     #[test]
-    fn test_expr_number() {
-        assert!(parse("123").is_ok());
+    fn test_relexpr_number() {
+        assert!(parse("123 == 123").is_ok());
     }
 
     #[test]
-    fn test_expr_number_paran() {
-        assert!(parse("(1)").is_ok());
-        assert!(parse("(1+2))").is_err());
-        assert!(parse("((1+2))").is_ok());
+    fn test_relexpr_number_paran() {
+        assert!(parse("a < (1+2-3)").is_ok());
+        assert!(parse("b > (tjena)").is_ok());
+        assert!(parse("c == ((1+2))").is_ok());
     }
 
     #[test]
     fn test_expr_var() {
-        assert!(parse("a + b + 2 - 5").is_ok());
+        assert!(parse("a + b + 2 - 5 != c").is_ok());
     }
 
     #[test]
     fn test_expr_op() {
-        assert!(parse("a + b").is_ok());    // Add
-        assert!(parse("a - b").is_ok());    // Sub
-        assert!(parse("a / b").is_ok());    // Div
-        assert!(parse("a * b").is_ok());    // Mul
+        assert!(parse("hej > a + b").is_ok());    // GT
+        assert!(parse("c < a - b").is_ok());    // LT
+        assert!(parse("a <= b / 3").is_ok());    // LEQ
+        assert!(parse("a >= b * 3 / 5").is_ok());    // GEQ
     }
 
 }

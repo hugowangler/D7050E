@@ -25,28 +25,21 @@ Assign: Box<Node> = {
 };
 
 AssignBinding: Box<Node> = {
-    <var: Var> ":" <typ: LitType> => {
+    <var: Identifier> ":" <typ: LitType> => {
         Box::new(Node::VarBinding{name: var, var_type: typ})
     }
 };
 
-Bool: Box<Node> = {
-    "true" => Box::new(Node::Bool(BoolType::True)),
-    "false" => Box::new(Node::Bool(BoolType::False))
-};
-
+// log = "&&, ||"
 pub LogExpr: Box<Node> = {
     LogExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
-    LogExpr LogOp Bool => Box::new(Node::LogOp(<>)),
-
     RelExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
-    RelExpr LogOp Bool => Box::new(Node::LogOp(<>)),
-
-    Bool
 };
 
+// rel = "==, >, >=" etc
 pub RelExpr: Box<Node> = {
-    Expr RelOp Expr => Box::new(Node::RelOp(<>))
+    RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
+    Expr
 };
 
 pub Expr: Box<Node> = {
@@ -71,11 +64,19 @@ FactorOp: BinOpcode = {
 
 Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
-    Var => Box::new(Node::Var(<>)),
+    Var,
+    Bool,
     "(" <Expr> ")",
 };
 
-Var = Identifier;
+Var: Box<Node> = {
+    Identifier => Box::new(Node::Var(<>))
+};
+
+Bool: Box<Node> = {
+    "true" => Box::new(Node::Bool(BoolType::True)),
+    "false" => Box::new(Node::Bool(BoolType::False))
+};
 
 LitType: LiteralType = {
     "bool" => LiteralType::Bool,
