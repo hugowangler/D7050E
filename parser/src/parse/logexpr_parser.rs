@@ -14,8 +14,27 @@ mod tests {
     use super::parse;
 
     #[test]
-    fn test_logexpr_number() {
-        assert!(parse("a && 123").is_ok());
+    fn test_logexpr_expr() {
+        assert!(parse("a && 123").is_ok()); // Var Log Num
+        assert!(parse("true && 123").is_ok()); // bool Log Num
+        assert!(parse("a && true").is_ok()); // Var Log Bool
+    }
+
+    #[test]
+    fn test_logexpr_rel() {
+        assert!(parse("a > 1 && b < 3").is_ok());
+    }
+
+    #[test]
+    fn test_logexpr_log() {
+        assert!(parse("a && b || c && a").is_ok());
+    }
+
+    #[test]
+    fn test_logexpr_rellog() {
+        assert!(parse("a || b && a < c").is_ok());
+        assert!(parse("a < b && a == c").is_ok());
+
     }
 
     #[test]

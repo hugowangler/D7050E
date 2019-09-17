@@ -9,13 +9,14 @@ use parse::{
     keyword_parser,
     expr_parser,
     relexpr_parser,
-    logexpr_parser
+    logexpr_parser,
+    content_parser
 };
 
 fn main() {
-    //println!("{:#?}", &keyword_parser::parse("let a : bool = b && c;"));
-    //println!("{:#?}", &relexpr_parser::parse("abs"));
-    //println!("{:#?}", &logexpr_parser::parse("true"));
-    println!("{:#?}", &expr_parser::parse("1-2+3"));
+    //println!("{:#?}", &content_parser::parse("let a : bool = (c == b)"));
+    //println!("{:#?}", &relexpr_parser::parse("false != b"));
+    println!("{:#?}", &logexpr_parser::parse("a || b && a || c"));
+    //println!("{:#?}", &content_parser::parse("let a: i32 = 12; let b: i32 = 24;"));
     //println!("{:#?}", &keyword_parser::parse("let a: i32 = -1"));
 }
