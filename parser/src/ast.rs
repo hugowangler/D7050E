@@ -19,4 +19,6 @@ pub enum Node {
     LogOp(Box<Node>, LogOpcode, Box<Node>),
     RelOp(Box<Node>, RelOpcode, Box<Node>),
     Let{var: Box<Node>, expr: Box<Node>},
+    If(Box<Node>, Box<Node>),
+    IfElse(Box<Node>, Box<Node>, Box<Node>)
 }

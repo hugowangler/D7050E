@@ -15,13 +15,23 @@ use crate::operators::{
 grammar;
 
 pub Keyword: Box<Node> = {
-    "let" <Assign>
+    "let" <Assign>,
+    "if" <StatementIf>
 };
 
 Assign: Box<Node> = {
     <a:AssignBinding> "=" <e:Expr> ";" => {
         Box::new(Node::Let{var: a, expr: e})
     }
+};
+
+StatementIf: Box<Node> = {
+    "(" <Cond> ")" "{" <Content> "}" =>
+};
+
+Cond: Box<Node> = {
+    LogExpr => <>,
+    RelExpr => <>
 };
 
 AssignBinding: Box<Node> = {
