@@ -1,4 +1,3 @@
-
 #[derive(Debug, PartialEq)]
 #[allow(dead_code)]
 pub enum LiteralType {
@@ -25,4 +24,11 @@ pub enum LiteralType {
 
     // Strings
     Str,
+}
+
+#[derive(Debug, PartialEq)]
+#[allow(dead_code)]
+pub enum BoolType {
+    True,
+    False
 }

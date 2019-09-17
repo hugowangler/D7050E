@@ -11,7 +11,7 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::parse;
 
     #[test]
     fn test_expr_number() {

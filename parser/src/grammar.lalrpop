@@ -1,17 +1,50 @@
 use std::str::FromStr;
 
-use crate::types::LiteralType;
+use crate::types::{
+    LiteralType,
+    BoolType
+};
+
 use crate::ast::Node;
 use crate::operators::{
     BinOpcode,
-    BoolOpcode
+    LogOpcode,
+    RelOpcode
 };
 
 grammar;
 
+pub Keyword: Box<Node> = {
+    "let" <Assign>
+};
+
+Assign: Box<Node> = {
+    <a:AssignBinding> "=" <e:Expr> ";" => {
+        Box::new(Node::Let{var: a, expr: e})
+    }
+};
+
+AssignBinding: Box<Node> = {
+    <var: Identifier> ":" <typ: LitType> => {
+        Box::new(Node::VarBinding{name: var, var_type: typ})
+    }
+};
+
+// log = "&&, ||"
+pub LogExpr: Box<Node> = {
+    LogExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
+    RelExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
+};
+
+// rel = "==, >, >=" etc
+pub RelExpr: Box<Node> = {
+    RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
+    Expr
+};
+
 pub Expr: Box<Node> = {
     Expr ExprOp Factor => Box::new(Node::BinOp(<>)),
-    Factor,
+    Factor
 };
 
 ExprOp: BinOpcode = {
@@ -31,23 +64,19 @@ FactorOp: BinOpcode = {
 
 Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
-    Var => Box::new(Node::Var(<>)),
+    Var,
+    Bool,
     "(" <Expr> ")",
 };
 
-Var = Identifier;
-
-pub Let: Box<Node> = {
-    <a:Assign> <e:Expr> ";" => {
-        Box::new(Node::Let{var: a, expr: e})
-    }
+Var: Box<Node> = {
+    Identifier => Box::new(Node::Var(<>))
 };
 
-Assign: Box<Node> = {
-    "let" <var: Var> ":" <typ: LitType> "=" => {
-        Box::new(Node::AssignVar{name: var, var_type: typ})
-    }
-}
+Bool: Box<Node> = {
+    "true" => Box::new(Node::Bool(BoolType::True)),
+    "false" => Box::new(Node::Bool(BoolType::False))
+};
 
 LitType: LiteralType = {
     "bool" => LiteralType::Bool,
@@ -77,6 +106,21 @@ LitType: LiteralType = {
 
 };
 
+LogOp: LogOpcode = {
+    "&&" => LogOpcode::AND,
+    "||" => LogOpcode::OR,
+    // "!" => LogOpcode::NOT
+};
+
+RelOp: RelOpcode = {
+    "==" => RelOpcode::EQ,
+    "!=" => RelOpcode::NEQ,
+    ">" => RelOpcode::GT,
+    "<" => RelOpcode::LT,
+    ">=" => RelOpcode::GEQ,
+    "<=" => RelOpcode::LEQ
+};
+// Nonterminals
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
