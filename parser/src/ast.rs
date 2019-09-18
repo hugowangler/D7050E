@@ -12,11 +12,18 @@ use crate::operators::{
 #[derive(Debug, PartialEq)]
 pub enum Node {
     Number(i32),
-    Var(String),
     Bool(BoolType),
-    VarBinding{name: String, var_type: LiteralType},
+
+    Var(String),
+    VarBinding(Box<Node>, LiteralType),
+
     BinOp(Box<Node>, BinOpcode, Box<Node>),
     LogOp(Box<Node>, LogOpcode, Box<Node>),
     RelOp(Box<Node>, RelOpcode, Box<Node>),
-    Let{var: Box<Node>, expr: Box<Node>},
+
+    Let(Box<Node>, Box<Node>),
+    If(Box<Node>, Box<Node>),
+    IfElse(Box<Node>, Box<Node>, Box<Node>),
+
+    Content(Box<Node>, Box<Node>)
 }

@@ -14,32 +14,43 @@ use crate::operators::{
 
 grammar;
 
+pub Content: Box<Node> = {
+    <Keyword> ";" <Keyword> => Box::new(Node::Content(<>)),
+    <Keyword> ";"
+}
+
 pub Keyword: Box<Node> = {
-    "let" <Assign>
+    "let" <Assign>,
 };
 
 Assign: Box<Node> = {
-    <a:AssignBinding> "=" <e:Expr> ";" => {
-        Box::new(Node::Let{var: a, expr: e})
-    }
+    AssignBinding LogExpr => Box::new(Node::Let(<>)),
+    AssignBinding RelExpr => Box::new(Node::Let(<>)),
+    AssignBinding Expr => Box::new(Node::Let(<>))
 };
 
 AssignBinding: Box<Node> = {
-    <var: Identifier> ":" <typ: LitType> => {
-        Box::new(Node::VarBinding{name: var, var_type: typ})
+    <Var> ":" <LitType> "=" => {
+        Box::new(Node::VarBinding(<>))
     }
 };
 
 // log = "&&, ||"
 pub LogExpr: Box<Node> = {
+    LogExpr LogOp Expr => Box::new(Node::LogOp(<>)),
     LogExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
+    
     RelExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
+    RelExpr LogOp Expr => Box::new(Node::LogOp(<>)),
+    
+    Expr LogOp Expr => Box::new(Node::LogOp(<>)),
 };
+
 
 // rel = "==, >, >=" etc
 pub RelExpr: Box<Node> = {
     RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
-    Expr
+    Expr RelOp Expr => Box::new(Node::RelOp(<>)),
 };
 
 pub Expr: Box<Node> = {
