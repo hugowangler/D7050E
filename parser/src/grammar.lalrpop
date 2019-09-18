@@ -14,20 +14,18 @@ use crate::operators::{
 
 grammar;
 
-pub Keyword: Box<Node> = {
-    "let" <Assign>,
-};
-
 pub Content: Box<Node> = {
     <Keyword> ";" <Keyword> => Box::new(Node::Content(<>)),
     <Keyword> ";"
 }
 
+pub Keyword: Box<Node> = {
+    "let" <Assign>,
+};
+
 Assign: Box<Node> = {
     AssignBinding LogExpr => Box::new(Node::Let(<>)),
-
     AssignBinding RelExpr => Box::new(Node::Let(<>)),
-
     AssignBinding Expr => Box::new(Node::Let(<>))
 };
 
@@ -39,14 +37,19 @@ AssignBinding: Box<Node> = {
 
 // log = "&&, ||"
 pub LogExpr: Box<Node> = {
-    LogExpr LogOp LogExpr => Box::new(Node::LogOp(<>)),
+    LogExpr LogOp Expr => Box::new(Node::LogOp(<>)),
     LogExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
+    
     RelExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
-    Expr LogOp Expr => Box::new(Node::LogOp(<>))
+    RelExpr LogOp Expr => Box::new(Node::LogOp(<>)),
+    
+    Expr LogOp Expr => Box::new(Node::LogOp(<>)),
 };
+
 
 // rel = "==, >, >=" etc
 pub RelExpr: Box<Node> = {
+    RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
     Expr RelOp Expr => Box::new(Node::RelOp(<>)),
 };
 

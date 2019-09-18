@@ -15,8 +15,8 @@ use parse::{
 
 fn main() {
     //println!("{:#?}", &content_parser::parse("let a : bool = (c == b)"));
-    //println!("{:#?}", &relexpr_parser::parse("false != b"));
-    println!("{:#?}", &logexpr_parser::parse("a || b && a || c"));
-    //println!("{:#?}", &content_parser::parse("let a: i32 = 12; let b: i32 = 24;"));
-    //println!("{:#?}", &keyword_parser::parse("let a: i32 = -1"));
+    //println!("{:#?}", &relexpr_parser::parse("a == b != c == false"));
+    //println!("{:#?}", &logexpr_parser::parse("a || c && b"));
+    println!("{:#?}", &content_parser::parse("let a: i32 = 12; let b: i32 = 24;"));
+    //println!("{:#?}", &keyword_parser::parse("let b : bool = a + 5 > b && c"));
 }
