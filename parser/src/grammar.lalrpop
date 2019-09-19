@@ -16,12 +16,50 @@ grammar;
 
 pub Statement: Box<Node> = {
     <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
-    <Keyword> ";"
+    <Keyword> "}" <Statement> => Box::new(Node::Statement(<>)),
+    <Keyword> ";",
+    <Keyword> "}"
 };
 
 pub Keyword: Box<Node> = {
     "let" <Assign>,
+    "if" <IfStatement>
 };
+
+IfStatement: Box<Node> = {
+    // Plain if
+    "(" <c:Cond> ")" "{" <i:Statement> => Box::new(
+        Node::If{
+            cond: c,
+            statement: i
+        }
+    ),
+
+    // if-else
+    // TODO: Ignore whitespaces inbetween "else" and "{"
+    "(" <c:Cond> ")" "{" <i:Statement> "} else {" <e:Statement> => Box::new(
+        Node::IfElse{
+            cond: c,
+            if_statement: i,
+            else_statement: e
+        }
+    ),
+
+    // else-if
+    "(" <c:Cond> ")" "{" <i:Statement> "} else if" <ei:IfStatement>  => Box::new(
+        Node::IfElse{
+            cond: c,
+            if_statement: i,
+            else_statement: ei  // Contains the else-if statement
+        }
+    )
+};
+
+Cond: Box<Node> = {
+    LogExpr => <>,
+    RelExpr => <>,
+    Expr => <>
+}
 
 Assign: Box<Node> = {
     AssignBinding LogExpr => Box::new(Node::Let(<>)),

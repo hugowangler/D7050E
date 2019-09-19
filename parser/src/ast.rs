@@ -22,8 +22,8 @@ pub enum Node {
     RelOp(Box<Node>, RelOpcode, Box<Node>),
 
     Let(Box<Node>, Box<Node>),
-    If(Box<Node>, Box<Node>),
-    IfElse(Box<Node>, Box<Node>, Box<Node>),
+    If{cond: Box<Node>, statement: Box<Node>}, // @Args cond, statement
+    IfElse{cond: Box<Node>, if_statement: Box<Node>, else_statement: Box<Node>},
 
     Statement(Box<Node>, Box<Node>)
 }
