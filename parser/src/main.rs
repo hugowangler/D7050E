@@ -10,13 +10,13 @@ use parse::{
     expr_parser,
     relexpr_parser,
     logexpr_parser,
-    content_parser
+    statement_parser
 };
 
 fn main() {
     //println!("{:#?}", &content_parser::parse("let a : bool = (c == b)"));
-    //println!("{:#?}", &relexpr_parser::parse("a == b != c == false"));
-    //println!("{:#?}", &logexpr_parser::parse("a || c && b"));
-    println!("{:#?}", &content_parser::parse("let a: i32 = 12; let b: i32 = 24;"));
+    //println!("{:#?}", &relexpr_parser::parse("a || b"));
+    println!("{:#?}", &logexpr_parser::parse("a || c > b"));
+    //println!("{:#?}", &statement_parser::parse("let node: bool = nodeA || nodeB > c; let c: u32 = a > b;"));
     //println!("{:#?}", &keyword_parser::parse("let b : bool = a + 5 > b && c"));
 }
