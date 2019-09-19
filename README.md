@@ -1,2 +1,2 @@
 # D7050E
-Building a compiler using Rust with LALRPOP for generating the parsers.
+Building a compiler with Rust using LALRPOP for generating the parsers.
