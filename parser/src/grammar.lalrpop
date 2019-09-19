@@ -14,10 +14,10 @@ use crate::operators::{
 
 grammar;
 
-pub Content: Box<Node> = {
-    <Keyword> ";" <Keyword> => Box::new(Node::Content(<>)),
+pub Statement: Box<Node> = {
+    <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
     <Keyword> ";"
-}
+};
 
 pub Keyword: Box<Node> = {
     "let" <Assign>,
@@ -30,9 +30,7 @@ Assign: Box<Node> = {
 };
 
 AssignBinding: Box<Node> = {
-    <Var> ":" <LitType> "=" => {
-        Box::new(Node::VarBinding(<>))
-    }
+    <Var> ":" <LitType> "=" => Box::new(Node::VarBinding(<>))
 };
 
 // log = "&&, ||"
@@ -44,13 +42,14 @@ pub LogExpr: Box<Node> = {
     RelExpr LogOp Expr => Box::new(Node::LogOp(<>)),
     
     Expr LogOp Expr => Box::new(Node::LogOp(<>)),
+    Expr LogOp RelExpr => Box::new(Node::LogOp(<>))
 };
 
 
 // rel = "==, >, >=" etc
 pub RelExpr: Box<Node> = {
     RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
-    Expr RelOp Expr => Box::new(Node::RelOp(<>)),
+    Expr RelOp Expr => Box::new(Node::RelOp(<>))
 };
 
 pub Expr: Box<Node> = {
@@ -60,24 +59,24 @@ pub Expr: Box<Node> = {
 
 ExprOp: BinOpcode = {
     "+" => BinOpcode::Add,
-    "-" => BinOpcode::Sub,
+    "-" => BinOpcode::Sub
 };
 
 Factor: Box<Node> = {
     Factor FactorOp Term => Box::new(Node::BinOp(<>)),
-    Term,
+    Term
 };
 
 FactorOp: BinOpcode = {
     "*" => BinOpcode::Mul,
-    "/" => BinOpcode::Div,
+    "/" => BinOpcode::Div
 };
 
 Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
     Var,
     Bool,
-    "(" <Expr> ")",
+    "(" <Expr> ")"
 };
 
 Var: Box<Node> = {
@@ -113,7 +112,7 @@ LitType: LiteralType = {
     //array,
     //slice,
     "str" => LiteralType::Str,
-    "char" => LiteralType::Char,
+    "char" => LiteralType::Char
 
 };
 

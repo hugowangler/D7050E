@@ -36,6 +36,11 @@ mod tests {
         assert!(parse("a < b && a == c").is_ok());
 
     }
+    
+    fn test_logexpr_exprlog() {
+        assert!(parse("a && a < c").is_ok());
+        assert!(parse("a < b || a + 6").is_ok());
+    }
 
     #[test]
     fn test_expr_number_paran() {

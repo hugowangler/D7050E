@@ -25,5 +25,5 @@ pub enum Node {
     If(Box<Node>, Box<Node>),
     IfElse(Box<Node>, Box<Node>, Box<Node>),
 
-    Content(Box<Node>, Box<Node>)
+    Statement(Box<Node>, Box<Node>)
 }
