@@ -23,9 +23,37 @@ pub Statement: Box<Node> = {
 
 pub Keyword: Box<Node> = {
     "let" <Assign>,
-    "if" <IfStatement>
+    "if" <IfStatement>,
+    "while" <WhileStatement>,
+    
+    AssignValue,
+    LoopModifier,
+
+    Return
 };
 
+Return: Box<Node> = {
+    "return" <Expr> => Box::new(Node::Return(<>)),
+    "return" <RelExpr> => Box::new(Node::Return(<>)),
+    "return" <LogExpr> => Box::new(Node::Return(<>))
+};
+
+LoopModifier: Box<Node> = {
+    "break" => Box::new(Node::Break),
+    "continue" => Box::new(Node::Continue)
+};
+
+// TODO: Make parentheses optional in loops
+WhileStatement: Box<Node> = {
+    "(" <c:Cond> ")" "{" <s:Statement> => Box::new(
+        Node::While{
+            cond: c,
+            statement: s
+        }
+    )
+};
+
+ // TODO: Ignore whitespaces inbetween else statements and "{"
 IfStatement: Box<Node> = {
     // Plain if
     "(" <c:Cond> ")" "{" <i:Statement> => Box::new(
@@ -36,7 +64,6 @@ IfStatement: Box<Node> = {
     ),
 
     // if-else
-    // TODO: Ignore whitespaces inbetween "else" and "{"
     "(" <c:Cond> ")" "{" <i:Statement> "} else {" <e:Statement> => Box::new(
         Node::IfElse{
             cond: c,
@@ -59,12 +86,20 @@ Cond: Box<Node> = {
     LogExpr => <>,
     RelExpr => <>,
     Expr => <>
-}
+};
 
+// Declaring new vars i.e "let x: i32 = 3;"
 Assign: Box<Node> = {
     AssignBinding LogExpr => Box::new(Node::Let(<>)),
     AssignBinding RelExpr => Box::new(Node::Let(<>)),
-    AssignBinding Expr => Box::new(Node::Let(<>))
+    AssignBinding Expr => Box::new(Node::Let(<>)),
+};
+
+// Updating value of vars i.e "x = x + 1;"
+AssignValue: Box<Node> = {
+    <Var> "=" <Expr> => Box::new(Node::VarValue(<>)),
+    <Var> "=" <LogExpr> => Box::new(Node::VarValue(<>)),
+    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>))
 };
 
 AssignBinding: Box<Node> = {
