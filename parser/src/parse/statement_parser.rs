@@ -142,6 +142,74 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_state_while() {
+        assert!(
+            parse(
+                "while (done) {
+                    let x: i32 = x + 1;
+
+                    if (x == 5) {
+                        done = true;
+                    }
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_rec_while() {
+        assert!(
+            parse(
+                "while (done) {
+                    let x: i32 = x + 1;
+                    
+                    while (x > 5) {
+                        let y: i32 = 12 - x;
+                        x = x - 1;
+                    }
+
+                    if (x == 5) {
+                        let done: bool = false;
+                    }
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_loop_mod() {
+        assert!(
+            parse(
+                "while (done) {
+                    let x: i32 = x + 1;
+                    
+                    while (x > 5) {
+                        let y: i32 = 12 - x;
+                        x = x - 1;
+                        continue;
+                    }
+
+                    if (x == 5) {
+                        let done: bool = false;
+                        break;
+                    }
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_return() {
+        assert!(
+            parse(
+                "if (true) {
+                    return 5;
+                }"
+            ).is_ok()
+        );
+    }
+
 }
 
 
