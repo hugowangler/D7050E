@@ -38,6 +38,7 @@ pub enum BoolType {
 #[derive(Debug, PartialEq)]
 pub enum Function {
     Name(String),
-    Params(Vec<Box<Node>>), // Function params is a vector containing boxed vars with types
+    Params(Vec<Box<Node>>),
+    Args(Vec<Box<Node>>),
     ReturnType(LiteralType)
 }

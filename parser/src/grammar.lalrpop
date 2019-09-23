@@ -15,6 +15,10 @@ use crate::operators::{
 
 grammar;
 
+pub Program: Box<Node> = {
+
+};
+
 pub Statement: Box<Node> = {
     <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
     <Keyword> "}" <Statement> => Box::new(Node::Statement(<>)),
@@ -26,14 +30,24 @@ pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
-    "fn" <DefFunc>,
+    "fn" <FuncDef>,
     AssignValue,
     LoopModifier,
-    Return
+    Return,
+    FuncCall
+};
+
+FuncCall: Box<Node> = {
+    <n:FuncName>"("<a:FuncArgs>")" => Box::new(
+        Node::FuncCall{
+            name: n,
+            args: a
+        }
+    )
 };
 
 // TODO: Empty functions i.e. fn main(){}
-DefFunc: Box<Node> = {
+FuncDef: Box<Node> = {
     <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
         Node::Func{
             name: n,
@@ -51,24 +65,28 @@ FuncName: Function = {
     Identifier => Function::Name(<>)
 };
 
+FuncArgs: Function = {
+    VectorizeComma<Expr> => Function::Args(<>)
+};
+
 FuncParams: Function = {
-    VectorizeParams => Function::Params(<>)
+    VectorizeComma<Param> => Function::Params(<>)
 };
 
 FuncType: Function = {
     LitType => Function::ReturnType(<>)
 };
 
-// Parses a comma-seperated list of params of type "name: Type"
-VectorizeParams: Vec<Box<Node>> = {
-    <params:(<Param> ",")*> <param:Param?> => match param {
-        Some(param) => {
-            let mut params = params;
-            params.push(param);
-            params
+// Inserts a comma-seperated list of params of type "name: Type" into a vector
+VectorizeComma<T>: Vec<Box<Node>> = {
+    <v:(<T> ",")*> <e:T?> => match e {
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
         },
 
-        None => params
+        None => v
     }
 }
 
@@ -143,7 +161,8 @@ Assign: Box<Node> = {
 AssignValue: Box<Node> = {
     <Var> "=" <Expr> => Box::new(Node::VarValue(<>)),
     <Var> "=" <LogExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>))
+    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>)),
+    <Var> "=" <FuncCall> => Box::new(Node::VarValue(<>)),
 };
 
 AssignBinding: Box<Node> = {

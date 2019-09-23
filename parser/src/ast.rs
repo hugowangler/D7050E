@@ -31,6 +31,7 @@ pub enum Node {
 
     Func{name: Function, params: Function, r_type: Function, body: Box<Node>},
     FuncParam(Box<Node>, LiteralType),
+    FuncCall{name: Function, args: Function},
 
     // Loop modifiers
     Break,

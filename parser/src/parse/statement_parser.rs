@@ -253,6 +253,31 @@ mod tests {
             ).is_ok()
         );
     }
+
+    #[test]
+    fn test_state_func_call() {
+        assert!(parse("main();").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_var() {
+        assert!(parse("main(x);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_mul_vars() {
+        assert!(parse("main(x, y);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_num() {
+        assert!(parse("main(x, y, 123);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_bool() {
+        assert!(parse("main(x, y, 123, true);").is_ok());
+    }
 }
 
 
