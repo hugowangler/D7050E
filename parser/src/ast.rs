@@ -29,7 +29,8 @@ pub enum Node {
     IfElse{cond: Box<Node>, if_statement: Box<Node>, else_statement: Box<Node>},
     While{cond: Box<Node>, statement: Box<Node>},
 
-    DefFn{name: Function, params: Function, r_type: Function, body: Box<Node>},
+    Func{name: Function, params: Function, r_type: Function, body: Box<Node>},
+    FuncParam(Box<Node>, LiteralType),
 
     // Loop modifiers
     Break,

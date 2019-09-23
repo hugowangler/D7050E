@@ -26,37 +26,54 @@ pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
-    "fn" <DefFunction>,
+    "fn" <DefFunc>,
     AssignValue,
     LoopModifier,
     Return
 };
 
-DefFunction: Box<Node> = {
-    <n:FnName> "("<p:FnParams>") -> " <r:FnType> "{" <s:Statement> => Box::new(
-        Node::DefFn{
+// TODO: Empty functions i.e. fn main(){}
+DefFunc: Box<Node> = {
+    <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
+        Node::Func{
             name: n,
             params: p,
-            r_type: r,
+            r_type: match r {
+                Some(r) => r,
+                None => Function::ReturnType(LiteralType::None)
+            },
             body: s,
         }
     )
 };
 
-FnName: Function = {
+FuncName: Function = {
     Identifier => Function::Name(<>)
 };
 
-FnParams: Function = {
-    VecParams=> Function::Params(<>)
+FuncParams: Function = {
+    VectorizeParams => Function::Params(<>)
 };
 
-FnType: Function = {
+FuncType: Function = {
     LitType => Function::ReturnType(<>)
 };
 
-VecParams: Vec<T> {
-    
+// Parses a comma-seperated list of params of type "name: Type"
+VectorizeParams: Vec<Box<Node>> = {
+    <params:(<Param> ",")*> <param:Param?> => match param {
+        Some(param) => {
+            let mut params = params;
+            params.push(param);
+            params
+        },
+
+        None => params
+    }
+}
+
+Param: Box<Node> = {
+    <Var> ":" <LitType> => Box::new(Node::FuncParam(<>))
 };
 
 Return: Box<Node> = {

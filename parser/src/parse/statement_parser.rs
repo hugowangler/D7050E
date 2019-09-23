@@ -210,6 +210,49 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_state_func() {
+        assert!(
+            parse(
+                "fn main() {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_param() {
+        assert!(
+            parse(
+                "fn main(x: i32) {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_params() {
+        assert!(
+            parse(
+                "fn main(x: i32, y: i32) {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_rtype() {
+        assert!(
+            parse(
+                "fn main(x: i32, y: i32) -> i32 {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
 }
 
 

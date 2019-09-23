@@ -25,6 +25,8 @@ pub enum LiteralType {
 
     // Strings
     Str,
+
+    None
 }
 
 #[derive(Debug, PartialEq)]

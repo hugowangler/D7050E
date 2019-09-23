@@ -20,12 +20,21 @@ fn main() {
     //println!("{:#?}", &keyword_parser::parse("let b : bool = a + 5 > b && c"));
     println!("{:#?}", &statement_parser::
         parse(
-            "if (x < 5) {
-                return x + 5;
-            } else if (x > 5){
-                return x + 10;
-            } else {
-                return x;
+            "fn main(x: i32, y: i32) -> i32 {
+            while (done) {
+                    let x: i32 = x + 1;
+                    
+                    while (x > 5) {
+                        let y: i32 = 12 - x;
+                        x = x - 1;
+                        continue;
+                    }
+
+                    if (x == 5) {
+                        let done: bool = false;
+                        break;
+                    }
+                }
             }"
         )
     );
