@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use crate::types::{
     LiteralType,
-    BoolType
+    BoolType,
+    Function
 };
 
 use crate::ast::Node;
@@ -25,11 +26,37 @@ pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
-    
+    "fn" <DefFunction>,
     AssignValue,
     LoopModifier,
-
     Return
+};
+
+DefFunction: Box<Node> = {
+    <n:FnName> "("<p:FnParams>") -> " <r:FnType> "{" <s:Statement> => Box::new(
+        Node::DefFn{
+            name: n,
+            params: p,
+            r_type: r,
+            body: s,
+        }
+    )
+};
+
+FnName: Function = {
+    Identifier => Function::Name(<>)
+};
+
+FnParams: Function = {
+    VecParams=> Function::Params(<>)
+};
+
+FnType: Function = {
+    LitType => Function::ReturnType(<>)
+};
+
+VecParams: Vec<T> {
+    
 };
 
 Return: Box<Node> = {
@@ -152,10 +179,6 @@ Term: Box<Node> = {
     "(" <Expr> ")"
 };
 
-Var: Box<Node> = {
-    Identifier => Box::new(Node::Var(<>))
-};
-
 Bool: Box<Node> = {
     "true" => Box::new(Node::Bool(BoolType::True)),
     "false" => Box::new(Node::Bool(BoolType::False))
@@ -203,6 +226,7 @@ RelOp: RelOpcode = {
     ">=" => RelOpcode::GEQ,
     "<=" => RelOpcode::LEQ
 };
+
 // Nonterminals
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
@@ -210,4 +234,8 @@ Num: i32 = {
 
 Identifier: String = {
     r"[a-zA-Z][a-zA-Z0-9_]*" => String::from(<>)
+};
+
+Var: Box<Node> = {
+    Identifier => Box::new(Node::Var(<>))
 };
