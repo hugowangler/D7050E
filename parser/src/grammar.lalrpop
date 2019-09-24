@@ -16,6 +16,7 @@ use crate::operators::{
 
 grammar;
 
+// Creates a vector containing all the functions of the input = the program
 pub Program: Vec<Box<Node>> = {
     VectorizeFuncs => <>
 }
