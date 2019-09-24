@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use crate::types::{
     LiteralType,
-    BoolType,
     Function
 };
 
@@ -227,8 +226,8 @@ Term: Box<Node> = {
 };
 
 Bool: Box<Node> = {
-    "true" => Box::new(Node::Bool(BoolType::True)),
-    "false" => Box::new(Node::Bool(BoolType::False))
+    "true" => Box::new(Node::Bool(true)),
+    "false" => Box::new(Node::Bool(false))
 };
 
 LitType: LiteralType = {

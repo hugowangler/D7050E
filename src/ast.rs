@@ -1,6 +1,5 @@
 use crate::types::{
     LiteralType,
-    BoolType,
     Function
 };
 
@@ -13,7 +12,7 @@ use crate::operators::{
 #[derive(Debug, PartialEq)]
 pub enum Node {
     Number(i32),
-    Bool(BoolType),
+    Bool(bool),
 
     Var(String),
     VarBinding(Box<Node>, LiteralType),

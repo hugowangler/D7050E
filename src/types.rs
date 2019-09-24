@@ -30,12 +30,6 @@ pub enum LiteralType {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum BoolType {
-    True,
-    False
-}
-
-#[derive(Debug, PartialEq)]
 pub enum Function {
     Name(String),
     Params(Vec<Box<Node>>),
