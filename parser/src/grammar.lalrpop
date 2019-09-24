@@ -77,7 +77,7 @@ FuncType: Function = {
     LitType => Function::ReturnType(<>)
 };
 
-// Inserts a comma-seperated list of params of type "name: Type" into a vector
+// Creates a vector containing of a comma-seperated list of type T
 VectorizeComma<T>: Vec<Box<Node>> = {
     <v:(<T> ",")*> <e:T?> => match e {
         Some(e) => {

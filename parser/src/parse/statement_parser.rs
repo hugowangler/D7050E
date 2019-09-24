@@ -278,6 +278,12 @@ mod tests {
     fn test_state_func_call_bool() {
         assert!(parse("main(x, y, 123, true);").is_ok());
     }
+
+    #[test]
+    fn test_state_func_call_paran() {
+        assert!(parse("main x, y, 123, true);").is_err());
+        assert!(parse("main x, y, 123, true;").is_err());
+    }
 }
 
 
