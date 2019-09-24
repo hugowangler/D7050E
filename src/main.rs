@@ -5,6 +5,7 @@ mod parse;
 mod ast;
 mod types;
 mod operators;
+mod interpreter;
 
 use std::{
     fs::File,
@@ -38,6 +39,8 @@ fn main() {
         Err(e) => panic!("Could not read file: {:?}", e)
     }
 
-    let program = program_parser::parse(input).unwrap();
-    println!("program = {:#?}", program);
+    let expr = expr_parser::parse(&input).unwrap();
+    println!("program = {:#?}", expr);
+    interpreter::interp(expr);
+
 }
