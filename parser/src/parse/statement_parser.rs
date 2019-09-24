@@ -210,6 +210,80 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_state_func() {
+        assert!(
+            parse(
+                "fn main() {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_param() {
+        assert!(
+            parse(
+                "fn main(x: i32) {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_params() {
+        assert!(
+            parse(
+                "fn main(x: i32, y: i32) {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_rtype() {
+        assert!(
+            parse(
+                "fn main(x: i32, y: i32) -> i32 {
+                    x = x + 1;
+                }"
+            ).is_ok()
+        );
+    }
+
+    #[test]
+    fn test_state_func_call() {
+        assert!(parse("main();").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_var() {
+        assert!(parse("main(x);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_mul_vars() {
+        assert!(parse("main(x, y);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_num() {
+        assert!(parse("main(x, y, 123);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_bool() {
+        assert!(parse("main(x, y, 123, true);").is_ok());
+    }
+
+    #[test]
+    fn test_state_func_call_paran() {
+        assert!(parse("main x, y, 123, true);").is_err());
+        assert!(parse("main x, y, 123, true;").is_err());
+    }
 }
 
 

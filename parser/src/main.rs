@@ -20,13 +20,7 @@ fn main() {
     //println!("{:#?}", &keyword_parser::parse("let b : bool = a + 5 > b && c"));
     println!("{:#?}", &statement_parser::
         parse(
-            "if (x < 5) {
-                return x + 5;
-            } else if (x > 5){
-                return x + 10;
-            } else {
-                return x;
-            }"
+            "x = main(hej, tjena, hejda, 123, true);"
         )
     );
 }

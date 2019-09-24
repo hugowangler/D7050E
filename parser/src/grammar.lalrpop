@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use crate::types::{
     LiteralType,
-    BoolType
+    BoolType,
+    Function
 };
 
 use crate::ast::Node;
@@ -13,6 +14,10 @@ use crate::operators::{
 };
 
 grammar;
+
+pub Program: Box<Node> = {
+
+};
 
 pub Statement: Box<Node> = {
     <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
@@ -25,11 +30,68 @@ pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
-    
+    "fn" <FuncDef>,
     AssignValue,
     LoopModifier,
+    Return,
+    FuncCall
+};
 
-    Return
+FuncCall: Box<Node> = {
+    <n:FuncName>"("<a:FuncArgs>")" => Box::new(
+        Node::FuncCall{
+            name: n,
+            args: a
+        }
+    )
+};
+
+// TODO: Empty functions i.e. fn main(){}
+FuncDef: Box<Node> = {
+    <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
+        Node::Func{
+            name: n,
+            params: p,
+            r_type: match r {
+                Some(r) => r,
+                None => Function::ReturnType(LiteralType::None)
+            },
+            body: s,
+        }
+    )
+};
+
+FuncName: Function = {
+    Identifier => Function::Name(<>)
+};
+
+FuncArgs: Function = {
+    VectorizeComma<Expr> => Function::Args(<>)
+};
+
+FuncParams: Function = {
+    VectorizeComma<Param> => Function::Params(<>)
+};
+
+FuncType: Function = {
+    LitType => Function::ReturnType(<>)
+};
+
+// Creates a vector containing of a comma-seperated list of type T
+VectorizeComma<T>: Vec<Box<Node>> = {
+    <v:(<T> ",")*> <e:T?> => match e {
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        },
+
+        None => v
+    }
+}
+
+Param: Box<Node> = {
+    <Var> ":" <LitType> => Box::new(Node::FuncParam(<>))
 };
 
 Return: Box<Node> = {
@@ -99,7 +161,8 @@ Assign: Box<Node> = {
 AssignValue: Box<Node> = {
     <Var> "=" <Expr> => Box::new(Node::VarValue(<>)),
     <Var> "=" <LogExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>))
+    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>)),
+    <Var> "=" <FuncCall> => Box::new(Node::VarValue(<>)),
 };
 
 AssignBinding: Box<Node> = {
@@ -152,10 +215,6 @@ Term: Box<Node> = {
     "(" <Expr> ")"
 };
 
-Var: Box<Node> = {
-    Identifier => Box::new(Node::Var(<>))
-};
-
 Bool: Box<Node> = {
     "true" => Box::new(Node::Bool(BoolType::True)),
     "false" => Box::new(Node::Bool(BoolType::False))
@@ -203,6 +262,7 @@ RelOp: RelOpcode = {
     ">=" => RelOpcode::GEQ,
     "<=" => RelOpcode::LEQ
 };
+
 // Nonterminals
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
@@ -210,4 +270,8 @@ Num: i32 = {
 
 Identifier: String = {
     r"[a-zA-Z][a-zA-Z0-9_]*" => String::from(<>)
+};
+
+Var: Box<Node> = {
+    Identifier => Box::new(Node::Var(<>))
 };

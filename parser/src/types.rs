@@ -1,5 +1,6 @@
+use crate::ast::Node;
+
 #[derive(Debug, PartialEq)]
-#[allow(dead_code)]
 pub enum LiteralType {
     Bool,
     Char,
@@ -24,11 +25,20 @@ pub enum LiteralType {
 
     // Strings
     Str,
+
+    None
 }
 
 #[derive(Debug, PartialEq)]
-#[allow(dead_code)]
 pub enum BoolType {
     True,
     False
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Function {
+    Name(String),
+    Params(Vec<Box<Node>>),
+    Args(Vec<Box<Node>>),
+    ReturnType(LiteralType)
 }
