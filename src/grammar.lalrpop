@@ -3,8 +3,7 @@ use std::str::FromStr;
 use crate::types::{
     LiteralType,
     BoolType,
-    Function,
-    Program
+    Function
 };
 
 use crate::ast::Node;
