@@ -3,7 +3,8 @@ use std::str::FromStr;
 use crate::types::{
     LiteralType,
     BoolType,
-    Function
+    Function,
+    Program
 };
 
 use crate::ast::Node;
@@ -15,9 +16,10 @@ use crate::operators::{
 
 grammar;
 
-pub Program: Box<Node> = {
-
-};
+// Creates a vector containing all the functions of the input = the program
+pub Program: Vec<Box<Node>> = {
+    VectorizeFuncs => <>
+}
 
 pub Statement: Box<Node> = {
     <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
@@ -30,12 +32,22 @@ pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
-    "fn" <FuncDef>,
     AssignValue,
     LoopModifier,
     Return,
     FuncCall
 };
+
+VectorizeFuncs: Vec<Box<Node>> = {
+    <funcs:(<FuncDef> "}")*> <more:FuncDef?> => match more {
+        Some(more) => {
+            let mut funcs = funcs;
+            funcs.push(more);
+            funcs
+        },
+        None => funcs
+    }
+}
 
 FuncCall: Box<Node> = {
     <n:FuncName>"("<a:FuncArgs>")" => Box::new(
@@ -48,7 +60,7 @@ FuncCall: Box<Node> = {
 
 // TODO: Empty functions i.e. fn main(){}
 FuncDef: Box<Node> = {
-    <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
+   "fn" <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
         Node::Func{
             name: n,
             params: p,
@@ -115,7 +127,7 @@ WhileStatement: Box<Node> = {
     )
 };
 
- // TODO: Ignore whitespaces inbetween else statements and "{"
+// TODO: Ignore whitespaces inbetween else statements and "{"
 IfStatement: Box<Node> = {
     // Plain if
     "(" <c:Cond> ")" "{" <i:Statement> => Box::new(

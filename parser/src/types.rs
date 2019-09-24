@@ -42,3 +42,8 @@ pub enum Function {
     Args(Vec<Box<Node>>),
     ReturnType(LiteralType)
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Program {
+    Functions(Box<Node>)
+}
