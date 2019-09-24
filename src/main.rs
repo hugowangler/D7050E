@@ -1,8 +1,17 @@
-#[macro_use] extern crate lalrpop_util;
+#[macro_use]
+extern crate lalrpop_util;
+
 mod parse;
 mod ast;
 mod types;
 mod operators;
+
+use std::{
+    fs::File,
+    path::Path,
+    io::prelude::*,
+    error::Error
+};
 
 #[allow(unused_imports)]
 use parse::{
@@ -15,21 +24,20 @@ use parse::{
 };
 
 fn main() {
-    //println!("{:#?}", &content_parser::parse("let a : bool = (c == b)"));
-    //println!("{:#?}", &relexpr_parser::parse("a || b"));
-    //println!("{:#?}", &logexpr_parser::parse("a || c > b"));
-    //println!("{:#?}", &keyword_parser::parse("let b : bool = a + 5 > b && c"));
-    println!("{:#?}", &program_parser::
-        parse("
-            fn main() {
-                sum(1, 2);
-            }
-            
-            fn sum(x: i32, y: i32) -> i32 {
-                let sum: i32 = x + y;
-                return sum;
-            }
-  
-        ")
-    );
+    let path = Path::new("input.rs");
+    let display = path.display();
+    let mut file = match File::open(&path) {
+        Ok(file) => file,
+        Err(e) => panic!("Could not open {}: {}", display, e.description())
+    };
+
+    let mut input = String::new();
+    
+    match file.read_to_string(&mut input) {
+        Ok(_) => (),
+        Err(e) => panic!("Could not read file: {:?}", e)
+    }
+
+    let program = program_parser::parse(input).unwrap();
+    println!("program = {:#?}", program);
 }
