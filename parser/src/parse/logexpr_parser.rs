@@ -1,6 +1,7 @@
 use super::ParseError;
 use crate::ast::Node;
 
+#[allow(dead_code)]
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
     let result = crate::parse::grammar::LogExprParser::new().parse(s);
     return match result {
@@ -37,6 +38,7 @@ mod tests {
 
     }
     
+    #[test]
     fn test_logexpr_exprlog() {
         assert!(parse("a && a < c").is_ok());
         assert!(parse("a < b || a + 6").is_ok());
