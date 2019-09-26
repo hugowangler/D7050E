@@ -193,6 +193,7 @@ pub LogExpr: Box<Node> = {
 
 
 // rel = "==, >, >=" etc
+// TODO: Support true == (5 > 4)
 pub RelExpr: Box<Node> = {
     RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
     Expr RelOp Expr => Box::new(Node::RelOp(<>))

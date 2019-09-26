@@ -7,6 +7,8 @@ mod types;
 mod operators;
 mod interpreter;
 
+use interpreter::interpreter::interp;
+
 use std::{
     fs::File,
     path::Path,
@@ -39,8 +41,9 @@ fn main() {
         Err(e) => panic!("Could not read file: {:?}", e)
     }
 
-    let expr = expr_parser::parse(&input).unwrap();
-    println!("program = {:#?}", expr);
-    interpreter::interp(expr);
-
+    let expr = statement_parser::parse(&input).unwrap();
+    let mut expr_vec = Vec::new();
+    expr_vec.push(expr);
+    println!("expr = {:#?}", expr_vec);
+    println!("interp = {:?}", interp(expr_vec));
 }
