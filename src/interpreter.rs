@@ -13,17 +13,17 @@ pub mod interpreter {
         Number(i32),
         Bool(bool),
         Var(String),
+        None,
     }
 
     pub fn interp(mut ast: Vec<Box<Node>>) {
         let mut vars = HashMap::new();
         for node in ast.drain(..) {
             // println!("node = {:#?}", node);
-            println!("visit = {:?}", visit(node, &mut vars));
+            visit(node, &mut vars);
         }
         println!("vars = {:#?}", vars);
     }
-
 
     fn visit(node: Box<Node>, map: &mut HashMap<String, Value>) -> Value {
         match *node {
@@ -33,7 +33,11 @@ pub mod interpreter {
             Node::RelOp(left, op, right) => eval_rel_op(visit(left, map), op, visit(right, map)),
             Node::LogOp(left, op, right) => eval_log_op(visit(left, map), op, visit(right, map)),
             Node::Let(var, expr) => assign_var(var, visit(expr, map), map),
-            _ => panic!("Node not supported")
+            Node::Print(text) => {
+                println!("{:#?}", visit(text, map));
+                Value::None
+            }
+            _ => panic!("Node not supported: {:?}", *node)
         }
     }
 

@@ -44,6 +44,6 @@ fn main() {
     let expr = statement_parser::parse(&input).unwrap();
     let mut expr_vec = Vec::new();
     expr_vec.push(expr);
-    println!("expr = {:#?}", expr_vec);
-    println!("interp = {:?}", interp(expr_vec));
+    //println!("expr = {:#?}", expr_vec);
+    interp(expr_vec);
 }

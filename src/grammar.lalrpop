@@ -30,10 +30,15 @@ pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
+    Print,
     AssignValue,
     LoopModifier,
     Return,
     FuncCall
+};
+
+Print: Box<Node> = {
+    "print(" <Cond> ")" => Box::new(Node::Print(<>))
 };
 
 VectorizeFuncs: Vec<Box<Node>> = {

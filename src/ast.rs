@@ -24,6 +24,7 @@ pub enum Node {
 
     // Keywords
     Let(Box<Node>, Box<Node>),
+    Print(Box<Node>),
     If{cond: Box<Node>, statement: Box<Node>},
     IfElse{cond: Box<Node>, if_statement: Box<Node>, else_statement: Box<Node>},
     While{cond: Box<Node>, statement: Box<Node>},
