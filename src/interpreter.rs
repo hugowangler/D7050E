@@ -19,7 +19,6 @@ pub mod interpreter {
     pub fn interp(mut ast: Vec<Box<Node>>) {
         let mut vars: HashMap<String, Value> = HashMap::new();
         for node in ast.drain(..) {
-            // println!("node = {:#?}", node);
             visit(node, &mut vars);
         }
         // println!("vars = {:#?}", vars);
@@ -44,6 +43,7 @@ pub mod interpreter {
             Node::If{cond, statement} => eval_if_statement(visit(cond, map), statement, map),
             Node::IfElse{cond, if_statement, else_statement} => eval_if_else_statement(visit(cond, map), if_statement, else_statement, map),
             Node::While{cond, statement} => eval_while_statement(cond, statement, map),
+			Node::Func{name, params, r_type, body} => Value::None,
             Node::Print(text) => {
                 println!("{:#?}", visit(text, map));
                 Value::None
@@ -51,6 +51,10 @@ pub mod interpreter {
             _ => panic!("Node not supported: {:?}", *node)
         }
     }
+
+	fn eval_func() {
+
+	}
 
     fn assign_var(var: Box<Node>, expr: Value, map: &mut HashMap<String, Value>) -> Value {
         match *var {
