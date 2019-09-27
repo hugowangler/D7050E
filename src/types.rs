@@ -1,6 +1,6 @@
 use crate::ast::Node;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum LiteralType {
     Bool,
     Char,
@@ -24,12 +24,12 @@ pub enum LiteralType {
     F64,
 
     // Strings
-    Str,
+    _String,
 
     None
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Function {
     Name(String),
     Params(Vec<Box<Node>>),

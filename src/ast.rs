@@ -9,10 +9,11 @@ use crate::operators::{
     RelOpcode
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Node {
     Number(i32),
     Bool(bool),
+    _String(String),
 
     Var(String),
     VarBinding(Box<Node>, LiteralType),

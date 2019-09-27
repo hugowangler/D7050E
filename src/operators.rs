@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum BinOpcode {
     Mul,
     Div,
@@ -6,14 +6,14 @@ pub enum BinOpcode {
     Sub,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum LogOpcode {
     AND,
     OR,
     // NOT
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RelOpcode {
     EQ,
     NEQ,

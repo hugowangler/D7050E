@@ -41,9 +41,9 @@ fn main() {
         Err(e) => panic!("Could not read file: {:?}", e)
     }
 
-    let expr = statement_parser::parse(&input).unwrap();
-    let mut expr_vec = Vec::new();
-    expr_vec.push(expr);
-    //println!("expr = {:#?}", expr_vec);
-    interp(expr_vec);
+    let parsed = statement_parser::parse(&input).unwrap();
+    let mut parsed_vec = Vec::new();
+    parsed_vec.push(parsed);
+    println!("parsed_vec = {:#?}", parsed_vec);
+    interp(parsed_vec);
 }

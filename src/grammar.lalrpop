@@ -228,7 +228,12 @@ Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
     Var,
     Bool,
+    _String,
     "(" <Expr> ")"
+};
+
+_String: Box<Node> = {
+    "\"" <Identifier> "\"" => Box::new(Node::_String(<>))
 };
 
 Bool: Box<Node> = {
@@ -256,10 +261,8 @@ LitType: LiteralType = {
     // Floats
     "f32" => LiteralType::F32,
     "f64" => LiteralType::F64,
-    
-    //array,
-    //slice,
-    "str" => LiteralType::Str,
+
+    "String" => LiteralType::_String,
     "char" => LiteralType::Char
 
 };
