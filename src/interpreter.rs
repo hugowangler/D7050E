@@ -7,7 +7,7 @@ pub mod interpreter {
         RelOpcode,
         LogOpcode
     };
-	use crate::types::Function;
+	use crate::types::LiteralType;
 
     #[derive(Clone, Debug, PartialEq)]
     enum Value {
@@ -55,8 +55,8 @@ pub mod interpreter {
         }
     }
 
-	fn eval_func(name: Function, params: Function, r_type: Function, body: Box<Node>, context: &mut Vec<Scope>) -> Value {
-		//let scope = new_scope(context, name.to_string());
+	fn eval_func(name: String, params: Vec<Box<Node>>, r_type: LiteralType, body: Box<Node>, context: &mut Vec<Scope>) -> Value {
+		let scope = new_scope(context, name);
 		Value::None
 	}
 

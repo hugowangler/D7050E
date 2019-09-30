@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
 use crate::types::{
-    LiteralType,
-    Function
+    LiteralType
 };
 
 use crate::ast::Node;
@@ -53,7 +52,7 @@ VectorizeFuncs: Vec<Box<Node>> = {
 }
 
 FuncCall: Box<Node> = {
-    <n:FuncName>"("<a:FuncArgs>")" => Box::new(
+    <n:Identifier>"("<a:FuncArgs>")" => Box::new(
         Node::FuncCall{
             name: n,
             args: a
@@ -63,33 +62,25 @@ FuncCall: Box<Node> = {
 
 // TODO: Empty functions i.e. fn main(){}
 FuncDef: Box<Node> = {
-   "fn" <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
+   "fn" <n:Identifier> "("<p:FuncParams>")" <r:("->" <LitType>)?> "{" <s:Statement> => Box::new(
         Node::Func{
             name: n,
             params: p,
             r_type: match r {
                 Some(r) => r,
-                None => Function::ReturnType(LiteralType::None)
+                None => LiteralType::None
             },
             body: s,
         }
     )
 };
 
-FuncName: Function = {
-    Identifier => Function::Name(<>)
+FuncArgs: Vec<Box<Node>> = {
+    VectorizeComma<Expr> => <>
 };
 
-FuncArgs: Function = {
-    VectorizeComma<Expr> => Function::Args(<>)
-};
-
-FuncParams: Function = {
-    VectorizeComma<Param> => Function::Params(<>)
-};
-
-FuncType: Function = {
-    LitType => Function::ReturnType(<>)
+FuncParams: Vec<Box<Node>> = {
+    VectorizeComma<Param> => <>
 };
 
 // Creates a vector containing of a comma-seperated list of type T
