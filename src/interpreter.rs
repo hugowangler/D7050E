@@ -24,28 +24,28 @@ pub mod interpreter {
         // println!("vars = {:#?}", vars);
     }
 
-    fn visit(node: Box<Node>, map: &mut HashMap<String, Value>) -> Value {
+    fn visit(node: Box<Node>, vars: &mut HashMap<String, Value>) -> Value {
         match *node {
             Node::Number(num) => Value::Number(num),
             Node::Bool(b) => Value::Bool(b),
 			Node::_String(text) => Value::String(text),
-            Node::Var(name) => eval_var(&name, map),
-			Node::VarValue(var, expr) => update_var(var, visit(expr, map), map),
-            Node::BinOp(left, op, right) => eval_bin_op(visit(left, map), op, visit(right, map)),
-            Node::RelOp(left, op, right) => eval_rel_op(visit(left, map), op, visit(right, map)),
-            Node::LogOp(left, op, right) => eval_log_op(visit(left, map), op, visit(right, map)),
-            Node::Let(var, expr) => assign_var(var, visit(expr, map), map),
+            Node::Var(name) => eval_var(&name, vars),
+			Node::VarValue(var, expr) => update_var(var, visit(expr, vars), vars),
+            Node::BinOp(left, op, right) => eval_bin_op(visit(left, vars), op, visit(right, vars)),
+            Node::RelOp(left, op, right) => eval_rel_op(visit(left, vars), op, visit(right, vars)),
+            Node::LogOp(left, op, right) => eval_log_op(visit(left, vars), op, visit(right, vars)),
+            Node::Let(var, expr) => assign_var(var, visit(expr, vars), vars),
             Node::Statement(left, right) => {    // Statement is parent node that has children containing statements
-                visit(left, map);
-                visit(right, map);
+                visit(left, vars);
+                visit(right, vars);
                 Value::None     // Garbage enum just to not get rust error of no return value
             },
-            Node::If{cond, statement} => eval_if_statement(visit(cond, map), statement, map),
-            Node::IfElse{cond, if_statement, else_statement} => eval_if_else_statement(visit(cond, map), if_statement, else_statement, map),
-            Node::While{cond, statement} => eval_while_statement(cond, statement, map),
+            Node::If{cond, statement} => eval_if_statement(visit(cond, vars), statement, vars),
+            Node::IfElse{cond, if_statement, else_statement} => eval_if_else_statement(visit(cond, vars), if_statement, else_statement, vars),
+            Node::While{cond, statement} => eval_while_statement(cond, statement, vars),
 			Node::Func{name, params, r_type, body} => Value::None,
             Node::Print(text) => {
-                println!("{:#?}", visit(text, map));
+                println!("{:#?}", visit(text, vars));
                 Value::None
             }
             _ => panic!("Node not supported: {:?}", *node)
