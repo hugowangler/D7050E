@@ -7,6 +7,7 @@ pub mod interpreter {
         RelOpcode,
         LogOpcode
     };
+	use crate::types::Function;
 
     #[derive(Clone, Debug, PartialEq)]
     enum Value {
@@ -16,68 +17,78 @@ pub mod interpreter {
         None,
     }
 
+	type Scope = HashMap<String, Value>;
+
     pub fn interp(mut ast: Vec<Box<Node>>) {
-        let mut vars: HashMap<String, Value> = HashMap::new();
+        let mut context: Vec<Scope> = Vec::new();
         for node in ast.drain(..) {
-            visit(node, &mut vars);
+            visit(node, &mut context);
         }
-        // println!("vars = {:#?}", vars);
+        // println!("context = {:#?}", context);
     }
 
-    fn visit(node: Box<Node>, vars: &mut HashMap<String, Value>) -> Value {
+    fn visit(node: Box<Node>, context: &mut Vec<Scope>) -> Value {
         match *node {
             Node::Number(num) => Value::Number(num),
             Node::Bool(b) => Value::Bool(b),
 			Node::_String(text) => Value::String(text),
-            Node::Var(name) => eval_var(&name, vars),
-			Node::VarValue(var, expr) => update_var(var, visit(expr, vars), vars),
-            Node::BinOp(left, op, right) => eval_bin_op(visit(left, vars), op, visit(right, vars)),
-            Node::RelOp(left, op, right) => eval_rel_op(visit(left, vars), op, visit(right, vars)),
-            Node::LogOp(left, op, right) => eval_log_op(visit(left, vars), op, visit(right, vars)),
-            Node::Let(var, expr) => assign_var(var, visit(expr, vars), vars),
+            Node::Var(name) => eval_var(&name, context),
+			Node::VarValue(var, expr) => update_var(var, visit(expr, context), context),
+            Node::BinOp(left, op, right) => eval_bin_op(visit(left, context), op, visit(right, context)),
+            Node::RelOp(left, op, right) => eval_rel_op(visit(left, context), op, visit(right, context)),
+            Node::LogOp(left, op, right) => eval_log_op(visit(left, context), op, visit(right, context)),
+            Node::Let(var, expr) => assign_var(var, visit(expr, context), context),
             Node::Statement(left, right) => {    // Statement is parent node that has children containing statements
-                visit(left, vars);
-                visit(right, vars);
+                visit(left, context);
+                visit(right, context);
                 Value::None     // Garbage enum just to not get rust error of no return value
             },
-            Node::If{cond, statement} => eval_if_statement(visit(cond, vars), statement, vars),
-            Node::IfElse{cond, if_statement, else_statement} => eval_if_else_statement(visit(cond, vars), if_statement, else_statement, vars),
-            Node::While{cond, statement} => eval_while_statement(cond, statement, vars),
-			Node::Func{name, params, r_type, body} => Value::None,
+            Node::If{cond, statement} => eval_if_statement(visit(cond, context), statement, context),
+            Node::IfElse{cond, if_statement, else_statement} => eval_if_else_statement(visit(cond, context), if_statement, else_statement, context),
+            Node::While{cond, statement} => eval_while_statement(cond, statement, context),
+			Node::Func{name, params, r_type, body} => eval_func(name, params, r_type, body, context),
             Node::Print(text) => {
-                println!("{:#?}", visit(text, vars));
+                println!("{:#?}", visit(text, context));
                 Value::None
             }
             _ => panic!("Node not supported: {:?}", *node)
         }
     }
 
-	fn eval_func() {
-
+	fn eval_func(name: Function, params: Function, r_type: Function, body: Box<Node>, context: &mut Vec<Scope>) -> Value {
+		//let scope = new_scope(context, name.to_string());
+		Value::None
 	}
 
-    fn assign_var(var: Box<Node>, expr: Value, map: &mut HashMap<String, Value>) -> Value {
+    fn assign_var(var: Box<Node>, expr: Value, context: &mut Vec<Scope>) -> Value {
         match *var {
-            Node::VarBinding(var, _var_type) => def_var(var, expr, map),
+            Node::VarBinding(var, _var_type) => def_var(var, expr, context),
             _ => panic!("assign_var: No VarBinding node")
         };
         Value::None
     }
 
-	fn def_var(var: Box<Node>, expr: Value, map: &mut HashMap<String, Value>) {
+	fn def_var(var: Box<Node>, expr: Value, context: &mut Vec<Scope>) {
 		match *var {
 			Node::Var(name) => {
-				map.insert(name, expr);
+				let mut scope = get_scope(context);
+				scope.insert(name, expr);
+				context.push(scope);
 			},
 			_ => panic!("def_var: No var node")
 		}
 	}
 
-	fn update_var(var: Box<Node>, expr: Value, map: &mut HashMap<String, Value>) -> Value {
+	fn update_var(var: Box<Node>, expr: Value, context: &mut Vec<Scope>) -> Value {
 		match *var {
 			Node::Var(name) => {
-				match map.insert(name.clone(), expr) {
-					Some(_res) => Value::None,
+				let mut scope = get_scope(context);
+
+				match scope.insert(name.clone(), expr) {
+					Some(_) => {
+						context.push(scope);
+						Value::None
+					},
 					None => panic!("Error: Variable {:?} is not defined", name)
 				}
 			},
@@ -85,8 +96,20 @@ pub mod interpreter {
 		}
 	}
 
-    fn eval_var(name: &str, map: &mut HashMap<String, Value>) -> Value {
-        match map.get(name) {
+	fn get_scope(context: &mut Vec<Scope>) -> Scope {
+		match context.pop() {
+			Some(scope) => scope,
+			None => panic!("get_scope: Context contains no scope")
+		}
+	}
+
+	fn new_scope(context: &mut Vec<Scope>, name: String) {
+		let scope: Scope = HashMap::new();
+		context.push(scope);
+	}
+
+    fn eval_var(name: &str, context: &mut Vec<Scope>) -> Value {
+        match get_scope(context).get(name) {
             Some(res) => res.clone(),
             None => panic!("Error: Variable {:?} is not defined", name)
         }
@@ -151,32 +174,32 @@ pub mod interpreter {
         }
     }
 
-    fn eval_if_statement(cond: Value, statement: Box<Node>, map: &mut HashMap<String, Value>) -> Value {
+    fn eval_if_statement(cond: Value, statement: Box<Node>, context: &mut Vec<Scope>) -> Value {
         match cond {
             Value::Bool(b) => match b {
-                true => visit(statement, map),
+                true => visit(statement, context),
                 false => Value::None
             },
             _ => panic!("eval_if_statement CONDITION did not evaluate to a boolean")
         }
     }
 
-    fn eval_if_else_statement(cond: Value, if_s: Box<Node>, else_s: Box<Node>, map: &mut HashMap<String, Value>) -> Value {
+    fn eval_if_else_statement(cond: Value, if_s: Box<Node>, else_s: Box<Node>, context: &mut Vec<Scope>) -> Value {
         match cond {
             Value::Bool(b) => match b {
-                true => visit(if_s, map),
-                false => visit(else_s, map)
+                true => visit(if_s, context),
+                false => visit(else_s, context)
             },
             _ => panic!("eval_if_else_statement CONDITION does not evaluate to a boolean")
         }
     }
 
-    fn eval_while_statement(cond: Box<Node>, statement: Box<Node>, map: &mut HashMap<String, Value>) -> Value {
-        match visit(cond.clone(), map) {
+    fn eval_while_statement(cond: Box<Node>, statement: Box<Node>, context: &mut Vec<Scope>) -> Value {
+        match visit(cond.clone(), context) {
             Value::Bool(b) => match b {
                 true => {
-                    visit(statement.clone(), map);
-                    eval_while_statement(cond, statement.clone(), map)
+                    visit(statement.clone(), context);
+                    eval_while_statement(cond, statement.clone(), context)
                 },
                 false => Value::None
             },
