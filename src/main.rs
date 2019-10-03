@@ -1,11 +1,15 @@
 #[macro_use]
 extern crate lalrpop_util;
 
-mod parse;
-mod ast;
-mod types;
-mod operators;
-mod interpreter;
+mod parse; 
+mod ast; 
+mod types; 
+mod operators; 
+mod interpreter; 
+mod value;
+mod context;
+mod scope;
+mod function;
 
 use interpreter::interpreter::interp;
 
@@ -41,11 +45,11 @@ fn main() {
         Err(e) => panic!("Could not read file: {:?}", e)
     }
 
-    let parsed = program_parser::parse(input).unwrap();
-    //let mut parsed_vec = Vec::new();
-    //parsed_vec.push(parsed);
-    //println!("parsed_vec = {:#?}", parsed_vec);
-	println!("parsed_ = {:#?}", parsed);
-    //interp(parsed_vec);
+    let parsed = statement_parser::parse(&input).unwrap();
+    let mut parsed_vec = Vec::new();
+    parsed_vec.push(parsed);
+    println!("parsed_vec = {:#?}", parsed_vec);
+	//println!("parsed_ = {:#?}", parsed);
+    interp(parsed_vec);
 	//interp(parsed);
 }
