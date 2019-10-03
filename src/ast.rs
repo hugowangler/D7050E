@@ -1,12 +1,5 @@
-use crate::types::{
-    LiteralType
-};
-
-use crate::operators::{
-    BinOpcode,
-    LogOpcode,
-    RelOpcode
-};
+use crate::types::LiteralType;
+use crate::operators::{BinOpcode, LogOpcode, RelOpcode};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {

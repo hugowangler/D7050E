@@ -13,22 +13,10 @@ mod function;
 
 use interpreter::interpreter::interp;
 
-use std::{
-    fs::File,
-    path::Path,
-    io::prelude::*,
-    error::Error
-};
+use std::{fs::File, path::Path, io::prelude::*, error::Error};
 
 #[allow(unused_imports)]
-use parse::{
-    keyword_parser,
-    expr_parser,
-    relexpr_parser,
-    logexpr_parser,
-    statement_parser,
-    program_parser
-};
+use parse::{keyword_parser, expr_parser, relexpr_parser, logexpr_parser, statement_parser, program_parser};
 
 fn main() {
     let path = Path::new("input.rs");

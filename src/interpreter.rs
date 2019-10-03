@@ -1,6 +1,6 @@
 pub mod interpreter {
     use std::collections::HashMap;
-
+	
     use crate::ast::Node;    
     use crate::operators::{BinOpcode, RelOpcode, LogOpcode};
 	use crate::types::LiteralType;
