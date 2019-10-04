@@ -19,9 +19,9 @@ pub fn interp(mut ast: Vec<Box<Node>>) -> Value {
 	for node in ast.drain(..) {
 		visit(node, &mut context, &mut funcs);
 	}
-	
+
 	match funcs.get("main") {
-		Some(main) => main.clone().call(vec![], &mut Context::new(), &mut funcs),
+		Some(main) => main.clone().call(vec![], &mut context, &mut funcs),
 		None => panic!("No main function is defined in the program")
 	}
 }
