@@ -1,5 +1,7 @@
-use crate::value::Value;
-use crate::scope::Scope;
+use crate::{
+	value::Value,
+	scope::Scope
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Context {
@@ -9,7 +11,7 @@ pub struct Context {
 impl Context {
 	pub fn new() -> Context {
 		Context{
-			scopes: vec![Scope::new()]
+			scopes: vec![]
 		}
 	}
 
@@ -30,9 +32,9 @@ impl Context {
 		None
 	}
 
-	pub fn get_var(&mut self, name: String) -> Option<Value> {
+	pub fn get_var(&mut self, name: &str) -> Option<Value> {
 		for scope in self.scopes.iter().rev() {
-			match scope.vars.get(&name) {
+			match scope.vars.get(name) {
 				Some(value) => return Some(value.clone()),
 				None => ()
 			};

@@ -22,9 +22,9 @@ pub enum Node {
     IfElse{cond: Box<Node>, if_statement: Box<Node>, else_statement: Box<Node>},	//
     While{cond: Box<Node>, statement: Box<Node>},	//
 
-    Func{name: String, params: Vec<Box<Node>>, r_type: LiteralType, body: Box<Node>},
-    FuncParam(Box<Node>, LiteralType),
-    FuncCall{name: String, args: Vec<Box<Node>>},
+    Func{name: String, params: Vec<Box<Node>>, r_type: LiteralType, body: Box<Node>}, //
+    FuncParam(Box<Node>, LiteralType),	//
+    FuncCall{name: String, args: Vec<Box<Node>>}, //
 
     // Loop modifiers
     Break,
