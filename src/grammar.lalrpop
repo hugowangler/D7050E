@@ -19,8 +19,14 @@ pub Program: Vec<Box<Node>> = {
 }
 
 pub Statement: Box<Node> = {
-    <curr:Keyword> ";" <next:Statement> => Box::new(Node::Statement(<>)),
-    <curr:Keyword> "}" <next:Statement> => Box::new(Node::Statement(<>)),
+    <mut curr:Keyword> ";" <next:Statement> => {
+		curr.insert_next(next);
+		curr
+	},
+    <mut curr:Keyword> "}" <next:Statement> => {
+		curr.insert_next(next);
+		curr
+	},
     <Keyword> ";" => <>,
     <Keyword> "}" => <>
 };
@@ -37,7 +43,7 @@ pub Keyword: Box<Node> = {
 };
 
 Print: Box<Node> = {
-    "print(" <Cond> ")" => Box::new(Node::Print(<>))
+    "print(" <c:Cond> ")" => Box::new(Node::Print(c, None))
 };
 
 VectorizeFuncs: Vec<Box<Node>> = {
@@ -55,7 +61,8 @@ FuncCall: Box<Node> = {
     <n:Identifier>"("<a:FuncArgs>")" => Box::new(
         Node::FuncCall{
             name: n,
-            args: a
+            args: a,
+			next: None
         }
     )
 };
@@ -116,7 +123,8 @@ WhileStatement: Box<Node> = {
     "(" <c:Cond> ")" "{" <s:Statement> => Box::new(
         Node::While{
             cond: c,
-            statement: s
+            statement: s,
+			next: None
         }
     )
 };
@@ -127,7 +135,8 @@ IfStatement: Box<Node> = {
     "(" <c:Cond> ")" "{" <i:Statement> => Box::new(
         Node::If{
             cond: c,
-            statement: i
+            statement: i,
+			next: None
         }
     ),
 
@@ -136,7 +145,8 @@ IfStatement: Box<Node> = {
         Node::IfElse{
             cond: c,
             if_statement: i,
-            else_statement: e
+            else_statement: e,
+			next: None
         }
     ),
 
@@ -145,7 +155,8 @@ IfStatement: Box<Node> = {
         Node::IfElse{
             cond: c,
             if_statement: i,
-            else_statement: ei  // Contains the else-if statement
+            else_statement: ei,  // Contains the else-if statement
+			next: None
         }
     )
 };
@@ -158,16 +169,16 @@ Cond: Box<Node> = {
 
 // Declaring new vars i.e "let x: i32 = 3;"
 Assign: Box<Node> = {
-    AssignBinding LogExpr => Box::new(Node::Let(<>)),
-    AssignBinding RelExpr => Box::new(Node::Let(<>)),
-    AssignBinding Expr => Box::new(Node::Let(<>))
+    <a:AssignBinding> <l:LogExpr> => Box::new(Node::Let(a, l, None)),
+    <a:AssignBinding> <r:RelExpr> => Box::new(Node::Let(a, r, None)),
+    <a:AssignBinding> <e:Expr> => Box::new(Node::Let(a, e, None))
 };
 
 // Updating value of vars i.e "x = x + 1;"
 AssignValue: Box<Node> = {
-    <Var> "=" <Expr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <LogExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>))
+    <v:Var> "=" <e:Expr> => Box::new(Node::VarValue(v, e, None)),
+    <v:Var> "=" <l:LogExpr> => Box::new(Node::VarValue(v, l, None)),
+    <v:Var> "=" <r:RelExpr> => Box::new(Node::VarValue(v, r, None))
 };
 
 AssignBinding: Box<Node> = {
