@@ -1,14 +1,9 @@
 use std::str::FromStr;
 
-use crate::types::{
-    LiteralType
-};
-
-use crate::ast::Node;
-use crate::operators::{
-    BinOpcode,
-    LogOpcode,
-    RelOpcode
+use crate::{
+	types::LiteralType,
+	ast::Node,
+	operators::{BinOpcode, LogOpcode, RelOpcode}
 };
 
 grammar;
@@ -43,7 +38,7 @@ pub Keyword: Box<Node> = {
 };
 
 Print: Box<Node> = {
-    "print(" <c:Cond> ")" => Box::new(Node::Print(c, None))
+    "print(" <c:Cond> ")" => Box::new(Node::Print{text: c, next: None})
 };
 
 VectorizeFuncs: Vec<Box<Node>> = {
@@ -169,16 +164,16 @@ Cond: Box<Node> = {
 
 // Declaring new vars i.e "let x: i32 = 3;"
 Assign: Box<Node> = {
-    <a:AssignBinding> <l:LogExpr> => Box::new(Node::Let(a, l, None)),
-    <a:AssignBinding> <r:RelExpr> => Box::new(Node::Let(a, r, None)),
-    <a:AssignBinding> <e:Expr> => Box::new(Node::Let(a, e, None))
+    <a:AssignBinding> <l:LogExpr> => Box::new(Node::Let{var: a, expr: l, next: None}),
+    <a:AssignBinding> <r:RelExpr> => Box::new(Node::Let{var: a, expr: r, next: None}),
+    <a:AssignBinding> <e:Expr> => Box::new(Node::Let{var: a, expr: e, next: None})
 };
 
 // Updating value of vars i.e "x = x + 1;"
 AssignValue: Box<Node> = {
-    <v:Var> "=" <e:Expr> => Box::new(Node::VarValue(v, e, None)),
-    <v:Var> "=" <l:LogExpr> => Box::new(Node::VarValue(v, l, None)),
-    <v:Var> "=" <r:RelExpr> => Box::new(Node::VarValue(v, r, None))
+    <v:Var> "=" <e:Expr> => Box::new(Node::VarValue{var: v, expr: e, next: None}),
+    <v:Var> "=" <l:LogExpr> => Box::new(Node::VarValue{var: v, expr: l, next: None}),
+    <v:Var> "=" <r:RelExpr> => Box::new(Node::VarValue{var: v, expr: r, next: None})
 };
 
 AssignBinding: Box<Node> = {

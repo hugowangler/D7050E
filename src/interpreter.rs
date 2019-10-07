@@ -32,18 +32,18 @@ pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value
 		Node::Bool(b) => Value::Bool(b),
 		Node::_String(text) => Value::String(text),
 		Node::Var(name) => eval_var(&name, context),
-		Node::VarValue(var, expr, next) => update_var(var, visit(expr, context, funcs), context),
+		Node::VarValue{var, expr, next} => update_var(var, visit(expr, context, funcs), context),
 		Node::BinOp(left, op, right) => eval_bin_op(visit(left, context, funcs), op, visit(right, context, funcs)),
 		Node::RelOp(left, op, right) => eval_rel_op(visit(left, context, funcs), op, visit(right, context, funcs)),
 		Node::LogOp(left, op, right) => eval_log_op(visit(left, context, funcs), op, visit(right, context, funcs)),
-		Node::Let(var, expr, next) => assign_var(var, visit(expr, context, funcs), context),
+		Node::Let{var, expr, next} => assign_var(var, visit(expr, context, funcs), context),
 		Node::If{cond, statement, next} => eval_if_statement(visit(cond, context, funcs), statement, context, funcs),
 		Node::IfElse{cond, if_statement, else_statement, next} => eval_if_else_statement(visit(cond, context, funcs), if_statement, else_statement, context, funcs),
 		Node::While{cond, statement, next} => eval_while_statement(cond, statement, context, funcs),
 		Node::Func{name, params, r_type, body} => eval_func_dec(&name, &params, r_type, &body, funcs),
 		Node::FuncCall{name, args, next} => eval_func_call(&name, args, context, funcs),
 		Node::Return(expr) => visit(expr, context, funcs),
-		Node::Print(text, next) => {
+		Node::Print{text, next} => {
 			println!("{:#?}", visit(text, context, funcs));
 			Value::None
 		},

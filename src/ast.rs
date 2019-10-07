@@ -16,9 +16,9 @@ pub enum Node {
 
     // Keywords
 	// Keywords contain an optional field for the "next" node in the ast which contains other keywords
-	VarValue(Box<Node>, Box<Node>, Option<Box<Node>>),	//
-    Let(Box<Node>, Box<Node>, Option<Box<Node>>),	//
-    Print(Box<Node>, Option<Box<Node>>),	//
+	VarValue{var: Box<Node>, expr: Box<Node>, next: Option<Box<Node>>},	//
+    Let{var: Box<Node>, expr: Box<Node>, next: Option<Box<Node>>},	//
+    Print{text: Box<Node>, next: Option<Box<Node>>},	//
     If{cond: Box<Node>, statement: Box<Node>, next: Option<Box<Node>>},	//
     IfElse{cond: Box<Node>, if_statement: Box<Node>, else_statement: Box<Node>, next: Option<Box<Node>>},	//
     While{cond: Box<Node>, statement: Box<Node>, next: Option<Box<Node>>},	//
@@ -30,20 +30,20 @@ pub enum Node {
     // Loop modifiers
     Break,
     Continue,
-	
+
     Return(Box<Node>),
 }
 
 impl Node {
 	pub fn insert_next(&mut self, node: Box<Node>) {
 		match *self {
-			Node::VarValue(_, _, ref mut next) => *next = Some(node),
-			Node::Let(_, _, ref mut next) => *next = Some(node),
-			Node::Print(_, ref mut next) => *next = Some(node),
-			Node::If{cond:_, statement:_, ref mut next} => *next = Some(node),
-			Node::IfElse{cond:_, if_statement:_, else_statement:_, ref mut next} => *next = Some(node),
-			Node::While{cond:_, statement:_, ref mut next} => *next = Some(node),
-			Node::FuncCall{name:_, args:_, ref mut next} => *next = Some(node),
+			Node::VarValue{var: _, expr: _, ref mut next} => *next = Some(node),
+			Node::Let{var: _, expr: _, ref mut next} => *next = Some(node),
+			Node::Print{text: _, ref mut next} => *next = Some(node),
+			Node::If{cond: _, statement: _, ref mut next} => *next = Some(node),
+			Node::IfElse{cond: _, if_statement: _, else_statement: _, ref mut next} => *next = Some(node),
+			Node::While{cond: _, statement: _, ref mut next} => *next = Some(node),
+			Node::FuncCall{name: _, args: _, ref mut next} => *next = Some(node),
 			_ => panic!("Trying to insert next node a node which does not contain have a next node")
 		}
 	}
