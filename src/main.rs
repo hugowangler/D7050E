@@ -15,5 +15,5 @@ mod program;
 use std::path::Path;
 
 fn main() {
-	program::run(Path::new("input.rs"))
+	program::run(Path::new("input.rs"));
 }

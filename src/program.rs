@@ -8,9 +8,10 @@ use std::{
 use crate::{
 	parse::program_parser::parse,
 	interpreter::interp,
+	value::Value,
 };
 
-pub fn run(path: &Path) {
+pub fn run(path: &Path) -> Option<Value> {
 	let display = path.display();
 	let mut file = match File::open(&path) {
 		Ok(file) => file,
@@ -24,7 +25,21 @@ pub fn run(path: &Path) {
 	}
 
 	match parse(input) {
-		Ok(parsed_prog) => interp(parsed_prog),
+		Ok(parsed_prog) => {
+			print!("parsed_prog = {:#?}", &parsed_prog);
+			interp(parsed_prog)
+		},
 		Err(e) => panic!("Error while parsing program: {:?}", e)
-	};
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn fn_sum() {
+		let res = run(Path::new("tests/sum.txt"));
+		assert_eq!(res, Some(Value::Number(15)))
+	}
 }

@@ -29,7 +29,7 @@ impl Func {
 		}
 	}
 
-	pub fn call(&mut self, args: Vec<Box<Node>>, context: &mut Context, funcs: &mut Funcs) -> Value {
+	pub fn call(&mut self, args: Vec<Box<Node>>, context: &mut Context, funcs: &mut Funcs) -> Option<Value> {
 		self.check_args(&args);
 		let mut param_arg = vec![];
 		
@@ -40,8 +40,16 @@ impl Func {
 			);
 		}
 		context.push(Scope::init(param_arg));
-		println!("context in call = {:#?}", context);
-		visit(self.body.clone(), context, funcs)
+
+		// Execute the function body and return if the function returns
+		match visit(self.body.clone(), context, funcs) {
+			Value::Bool(b) => Some(Value::Bool(b)),
+			Value::Number(num) => Some(Value::Number(num)),
+			Value::None => None,
+			_ => panic!("Unkown return type in function \"{:?}\"", self.name)
+		}
+
+		// visit(self.body.clone(), context, funcs)	
 	}
 
 	fn check_args(&self, args: &Vec<Box<Node>>) {

@@ -241,6 +241,16 @@ mod tests {
         assert!(parse("main x, y, 123, true);").is_err());
         assert!(parse("main x, y, 123, true;").is_err());
     }
+
+	#[test]
+	fn test_state_assign_func() {
+		assert!(parse("res = sum();").is_ok());
+	}
+
+	#[test]
+	fn test_state_def_var_func() {
+		assert!(parse("let res: i32 = sum();").is_ok());
+	}
 }
 
 

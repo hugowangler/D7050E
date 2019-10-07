@@ -19,10 +19,10 @@ pub Program: Vec<Box<Node>> = {
 }
 
 pub Statement: Box<Node> = {
-    <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
-    <Keyword> "}" <Statement> => Box::new(Node::Statement(<>)),
-    <Keyword> ";",
-    <Keyword> "}"
+    <curr:Keyword> ";" <next:Statement> => Box::new(Node::Statement(<>)),
+    <curr:Keyword> "}" <next:Statement> => Box::new(Node::Statement(<>)),
+    <Keyword> ";" => <>,
+    <Keyword> "}" => <>
 };
 
 pub Keyword: Box<Node> = {
@@ -160,15 +160,14 @@ Cond: Box<Node> = {
 Assign: Box<Node> = {
     AssignBinding LogExpr => Box::new(Node::Let(<>)),
     AssignBinding RelExpr => Box::new(Node::Let(<>)),
-    AssignBinding Expr => Box::new(Node::Let(<>)),
+    AssignBinding Expr => Box::new(Node::Let(<>))
 };
 
 // Updating value of vars i.e "x = x + 1;"
 AssignValue: Box<Node> = {
     <Var> "=" <Expr> => Box::new(Node::VarValue(<>)),
     <Var> "=" <LogExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <FuncCall> => Box::new(Node::VarValue(<>)),
+    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>))
 };
 
 AssignBinding: Box<Node> = {
@@ -220,6 +219,7 @@ Term: Box<Node> = {
     Var,
     Bool,
     _String,
+	FuncCall,
     "(" <Expr> ")"
 };
 

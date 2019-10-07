@@ -12,7 +12,7 @@ use crate::{
 
 type Funcs = HashMap<String, Func>;	// Stores all the function names and their bodies
 
-pub fn interp(mut ast: Vec<Box<Node>>) -> Value {
+pub fn interp(mut ast: Vec<Box<Node>>) -> Option<Value> {
 	let mut context = Context::new();
 	let mut funcs: Funcs = HashMap::new();
 	
@@ -39,39 +39,56 @@ pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value
 		Node::Let(var, expr) => assign_var(var, visit(expr, context, funcs), context),
 		Node::Statement(left, right) => {    // Statement is parent node that has children containing statements
 			context.push(Scope::new());
+ 			match *left {
+				Node::Return(expr) => {
+					// println!("left return = {:#?}", expr);
+					return visit(expr, context, funcs)
+				},
+				_ => ()
+			};
 			visit(left, context, funcs);
+ 			match *right {
+				Node::Return(expr) => {
+					// println!("right return = {:#?}", expr);
+					return visit(expr, context, funcs)
+				},
+				_ => ()
+			};
 			visit(right, context, funcs);
 			context.pop();
-			Value::None     // Garbage enum just to not get rust error of no return value
+			Value::None
 		},
 		Node::If{cond, statement} => eval_if_statement(visit(cond, context, funcs), statement, context, funcs),
 		Node::IfElse{cond, if_statement, else_statement} => eval_if_else_statement(visit(cond, context, funcs), if_statement, else_statement, context, funcs),
 		Node::While{cond, statement} => eval_while_statement(cond, statement, context, funcs),
-		Node::Func{name, params, r_type, body} => eval_func_dec(name, &params, r_type, &body, funcs),
+		Node::Func{name, params, r_type, body} => eval_func_dec(&name, &params, r_type, &body, funcs),
 		Node::FuncCall{name, args} => eval_func_call(&name, args, context, funcs),
+		Node::Return(expr) => visit(expr, context, funcs),
 		Node::Print(text) => {
 			println!("{:#?}", visit(text, context, funcs));
 			Value::None
-		}
+		},
 		_ => panic!("Node not supported: {:?}", *node)
 	}
 }
 
-fn eval_func_dec(name: String, params: &Vec<Box<Node>>, r_type: LiteralType, body: &Box<Node>, funcs: &mut Funcs) -> Value {
-	let func = Func::new(name.clone(), params.clone(), r_type, body.clone());
+fn eval_func_dec(name: &str, params: &Vec<Box<Node>>, r_type: LiteralType, body: &Box<Node>, funcs: &mut Funcs) -> Value {
+	let func = Func::new(name.to_string(), params.clone(), r_type, body.clone());
 
-	match funcs.insert(name.clone(), func) {
+	match funcs.insert(name.to_string(), func) {
 		Some(_) => panic!("Function: {} is already defined", name.clone()),
 		None => Value::None
 	}
 }
 
 fn eval_func_call(name: &str, args: Vec<Box<Node>>, context: &mut Context, funcs: &mut Funcs) -> Value {
-	let mut callee = match funcs.get(name) {
-		Some(func) => func.clone(),
+	match funcs.get(name) {
+		Some(func) => match func.clone().call(args, context, funcs) {
+			Some(ret) => ret,
+			None => Value::None
+		},
 		None => panic!("eval_func_call: Function \"{}\" is not defined", name)
-	};
-	callee.call(args, context, funcs)
+	}
 }
 
 fn assign_var(var: Box<Node>, expr: Value, context: &mut Context) -> Value {
@@ -84,9 +101,7 @@ fn assign_var(var: Box<Node>, expr: Value, context: &mut Context) -> Value {
 
 fn def_var(var: Box<Node>, expr: Value, context: &mut Context) {
 	match *var {
-		Node::Var(name) => {
-			context.insert_var(name, expr)
-		},
+		Node::Var(name) => context.insert_var(name, expr),
 		_ => panic!("def_var: No var node")
 	}
 }
@@ -170,7 +185,7 @@ fn eval_log_op(left: Value, op: LogOpcode, right: Value) -> Value {
 }
 
 fn eval_if_statement(cond: Value, statement: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value {
-	match cond {
+	match cond.clone() {
 		Value::Bool(b) => match b {
 			true => visit(statement, context, funcs),
 			false => Value::None
@@ -180,7 +195,7 @@ fn eval_if_statement(cond: Value, statement: Box<Node>, context: &mut Context, f
 }
 
 fn eval_if_else_statement(cond: Value, if_s: Box<Node>, else_s: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value {
-	match cond {
+	match cond.clone() {
 		Value::Bool(b) => match b {
 			true => visit(if_s, context, funcs),
 			false => visit(else_s, context, funcs)

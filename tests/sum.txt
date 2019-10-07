@@ -1,0 +1,9 @@
+fn sum(x: i32, y: i32) {
+	let sum: i32 = x + y;
+	return sum;
+}
+
+fn main() {
+	let res: i32 = sum(10, 5);
+	return res;
+}
