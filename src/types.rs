@@ -24,5 +24,5 @@ pub enum LiteralType {
     // Strings
     _String,
 
-    None
+    None,
 }

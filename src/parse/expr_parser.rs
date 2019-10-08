@@ -6,8 +6,10 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
     let result = crate::parse::grammar::ExprParser::new().parse(s);
     return match result {
         Ok(s) => Ok(s),
-        Err(e) => Err(ParseError{message: e.to_string()}),
-    }
+        Err(e) => Err(ParseError {
+            message: e.to_string(),
+        }),
+    };
 }
 
 #[cfg(test)]
@@ -33,10 +35,10 @@ mod tests {
 
     #[test]
     fn test_expr_op() {
-        assert!(parse("a + b").is_ok());    // Add
-        assert!(parse("a - b").is_ok());    // Sub
-        assert!(parse("a / b").is_ok());    // Div
-        assert!(parse("a * b").is_ok());    // Mul
+        assert!(parse("a + b").is_ok()); // Add
+        assert!(parse("a - b").is_ok()); // Sub
+        assert!(parse("a / b").is_ok()); // Div
+        assert!(parse("a * b").is_ok()); // Mul
     }
 
 }

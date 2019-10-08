@@ -20,5 +20,5 @@ pub enum RelOpcode {
     GT,
     LT,
     LEQ,
-    GEQ
+    GEQ,
 }

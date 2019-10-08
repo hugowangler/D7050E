@@ -6,8 +6,10 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
     let result = crate::parse::grammar::LogExprParser::new().parse(s);
     return match result {
         Ok(s) => Ok(s),
-        Err(e) => Err(ParseError{message: e.to_string()}),
-    }
+        Err(e) => Err(ParseError {
+            message: e.to_string(),
+        }),
+    };
 }
 
 #[cfg(test)]
@@ -35,9 +37,8 @@ mod tests {
     fn test_logexpr_rellog() {
         assert!(parse("a || b && a < c").is_ok());
         assert!(parse("a < b && a == c").is_ok());
-
     }
-    
+
     #[test]
     fn test_logexpr_exprlog() {
         assert!(parse("a && a < c").is_ok());

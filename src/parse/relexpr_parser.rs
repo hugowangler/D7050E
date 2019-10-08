@@ -6,8 +6,10 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
     let result = crate::parse::grammar::RelExprParser::new().parse(s);
     return match result {
         Ok(s) => Ok(s),
-        Err(e) => Err(ParseError{message: e.to_string()}),
-    }
+        Err(e) => Err(ParseError {
+            message: e.to_string(),
+        }),
+    };
 }
 
 #[cfg(test)]
@@ -33,10 +35,10 @@ mod tests {
 
     #[test]
     fn test_expr_op() {
-        assert!(parse("hej > a + b").is_ok());    // GT
-        assert!(parse("c < a - b").is_ok());    // LT
-        assert!(parse("a <= b / 3").is_ok());    // LEQ
-        assert!(parse("a >= b * 3 / 5").is_ok());    // GEQ
+        assert!(parse("hej > a + b").is_ok()); // GT
+        assert!(parse("c < a - b").is_ok()); // LT
+        assert!(parse("a <= b / 3").is_ok()); // LEQ
+        assert!(parse("a >= b * 3 / 5").is_ok()); // GEQ
     }
 
 }

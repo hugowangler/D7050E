@@ -6,8 +6,10 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
     let result = crate::parse::grammar::KeywordParser::new().parse(s);
     return match result {
         Ok(s) => Ok(s),
-        Err(e) => Err(ParseError{message: e.to_string()}),
-    }
+        Err(e) => Err(ParseError {
+            message: e.to_string(),
+        }),
+    };
 }
 
 #[cfg(test)]
