@@ -29,38 +29,86 @@ mod tests {
     use super::*;
 
     #[test]
-    fn update_var_in_new_scope() {
-        let res = run(Path::new("tests/scope/update_var_in_new_scope.txt"));
+    fn if_update_var_in_new_scope() {
+        let res = run(Path::new("tests/scope/if_update_var_new_scope.txt"));
         assert_eq!(res, Some(Value::Number(1)))
     }
 
     #[test]
-    fn new_var_in_scope() {
-        let res = run(Path::new("tests/scope/new_var_in_scope.txt"));
+    fn if_var_in_scope() {
+        let res = run(Path::new("tests/scope/if_var_in_scope.txt"));
         assert_eq!(res, Some(Value::Number(0)))
     }
 
     #[test]
-    fn new_var_in_scope_return() {
-        let res = run(Path::new("tests/scope/new_var_in_scope_return.txt"));
+    fn if_var_in_scope_return() {
+        let res = run(Path::new("tests/scope/if_var_in_scope_return.txt"));
         assert_eq!(res, Some(Value::Number(1)))
     }
 
     #[test]
     #[should_panic]
-    fn use_var_outside_scope() {
-        run(Path::new("tests/scope/use_var_outside_scope.txt"));
+    fn if_var_outside_scope() {
+        run(Path::new("tests/scope/if_var_outside_scope.txt"));
     }
 
     #[test]
     #[should_panic]
-    fn scope_not_same_diff_function() {
-        run(Path::new("tests/scope/scope_not_same_diff_function.txt"));
+    fn fn_scope_not_same() {
+        run(Path::new("tests/scope/fn_scope_not_same.txt"));
     }
+
+	#[test]
+	fn while_update_var_new_scope() {
+		assert_eq!(run(Path::new("tests/scope/while_update_var_new_scope.txt")), Some(Value::Number(5)))
+	}
+
+	#[test]
+	fn while_var_in_scope_return() {
+		assert_eq!(run(Path::new("tests/scope/while_var_in_scope_return.txt")), Some(Value::Number(1)))
+	}
+
+	#[test]
+	fn while_var_in_scope() {
+		assert_eq!(run(Path::new("tests/scope/while_var_in_scope.txt")), Some(Value::Number(0)))
+	}
+
+	#[test]
+	#[should_panic]
+	fn while_var_outside_scope() {
+		run(Path::new("tests/scope/while_var_outside_scope.txt"));
+	}
+
+	#[test]
+	fn if_else_update_var_in_scope() {
+		assert_eq!(run(Path::new("tests/scope/if_else_update_var_new_scope.txt")), Some(Value::Number(10)))
+	}
+	
+	#[test]
+	fn if_else_var_in_scope_return() {
+		assert_eq!(run(Path::new("tests/scope/if_else_var_in_scope_return.txt")), Some(Value::Number(20)))
+	}
+
+	#[test]
+	fn if_else_var_in_scope() {
+		assert_eq!(run(Path::new("tests/scope/if_else_var_in_scope.txt")), Some(Value::Number(1)))
+	}
+
+	#[test]
+	#[should_panic]
+	fn if_else_var_outside_scope() {
+		run(Path::new("tests/scope/if_else_var_outside_scope.txt"));
+	}
 
     #[test]
     fn fn_sum() {
         let res = run(Path::new("tests/function/sum.txt"));
         assert_eq!(res, Some(Value::Number(15)))
+    }
+
+    #[test]
+    fn fn_fibonacci() {
+        let res = run(Path::new("tests/function/fibonacci.txt"));
+        assert_eq!(res, Some(Value::Number(6765)))
     }
 }

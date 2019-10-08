@@ -1,33 +1,13 @@
 fn fibonacci(n: i32) {
-	if(n == 0) {
-		print("in_if");
+	if (n == 0) {
 		return 0;
-	} else if(n == 1) {
-		print("in_else_if");
+	} else if (n == 1) {
 		return 1;
 	} else {
-		print("in_else");
-		let n1: i32 = n - 1;
-		print("n1");
-		print(n1);
-		let n1_res: i32 = fibonacci(n-1);
-		print("n1_res");
-		print(n1_res);
-		let n2: i32 = n - 2;
-		print("n2");
-		print(n2);
-		let n2_res: i32 = fibonacci(n-2);
-		print("n2_res");
-		print(n2_res);
-		let res: i32 = n1 + n2;
-		print("next_fibo");
-		print(res);
-		return res;
+		return fibonacci(n - 2) + fibonacci(n - 1);
 	}
 }
 
 fn main() {
-	let res: i32 = fibonacci(2);
-	print(res);
-	return res;
+	return fibonacci(20);
 }
