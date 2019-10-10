@@ -103,9 +103,7 @@ Param: Box<Node> = {
 };
 
 Return: Box<Node> = {
-    "return" <Expr> => Box::new(Node::Return(<>)),
-    // "return" <RelExpr> => Box::new(Node::Return(<>)),
-    // "return" <LogExpr> => Box::new(Node::Return(<>))
+    "return" <Expr> => Box::new(Node::Return(<>))
 };
 
 LoopModifier: Box<Node> = {
@@ -157,48 +155,22 @@ IfStatement: Box<Node> = {
 };
 
 Cond: Box<Node> = {
-    // LogExpr => <>,
-    // RelExpr => <>,
     Expr => <>
 };
 
 // Declaring new vars i.e "let x: i32 = 3;"
 Assign: Box<Node> = {
-    // <a:AssignBinding> <l:LogExpr> => Box::new(Node::Let{var: a, expr: l, next: None}),
-    // <a:AssignBinding> <r:RelExpr> => Box::new(Node::Let{var: a, expr: r, next: None}),
     <a:AssignBinding> <e:Expr> => Box::new(Node::Let{var: a, expr: e, next: None})
 };
 
 // Updating value of vars i.e "x = x + 1;"
 AssignValue: Box<Node> = {
-    <v:Var> "=" <e:Expr> => Box::new(Node::VarValue{var: v, expr: e, next: None}),
-    // <v:Var> "=" <l:LogExpr> => Box::new(Node::VarValue{var: v, expr: l, next: None}),
-    // <v:Var> "=" <r:RelExpr> => Box::new(Node::VarValue{var: v, expr: r, next: None})
+    <v:Var> "=" <e:Expr> => Box::new(Node::VarValue{var: v, expr: e, next: None})
 };
 
 AssignBinding: Box<Node> = {
     <Var> ":" <LitType> "=" => Box::new(Node::VarBinding(<>))
 };
-
-// log = "&&, ||"
-// pub LogExpr: Box<Node> = {
-//     LogExpr LogOp Expr => Box::new(Node::LogOp(<>)),
-//     LogExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
-    
-//     RelExpr LogOp RelExpr => Box::new(Node::LogOp(<>)),
-//     RelExpr LogOp Expr => Box::new(Node::LogOp(<>)),
-    
-//     Expr LogOp Expr => Box::new(Node::LogOp(<>)),
-//     Expr LogOp RelExpr => Box::new(Node::LogOp(<>))
-// };
-
-
-// rel = "==, >, >=" etc
-// TODO: Support true == (5 > 4)
-// pub RelExpr: Box<Node> = {
-//     RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
-//     Expr RelOp Expr => Box::new(Node::RelOp(<>))
-// };
 
 pub Expr: Box<Node> = {
     Expr ExprOp Factor => Box::new(Node::Expr(<>)),
