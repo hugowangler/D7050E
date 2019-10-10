@@ -8,14 +8,19 @@ use crate::{
 pub struct Func {
     pub name: String,
     pub params: Vec<Box<Node>>,
-    pub r_type: LiteralType,
+    pub r_type: Option<LiteralType>,
     pub body: Box<Node>,
 }
 
 type Funcs = HashMap<String, Func>; // Stores all the function names and their bodies
 
 impl Func {
-    pub fn new(name: String, params: Vec<Box<Node>>, r_type: LiteralType, body: Box<Node>) -> Func {
+    pub fn new(
+        name: String,
+        params: Vec<Box<Node>>,
+        r_type: Option<LiteralType>,
+        body: Box<Node>,
+    ) -> Func {
         Func {
             name: name,
             params: params,

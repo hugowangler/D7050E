@@ -18,7 +18,7 @@ mod tests {
 
     #[test]
     fn test_let_number() {
-        assert!(parse("let a:u32 = 2").is_ok());
+        assert!(parse("let a:i32 = 2").is_ok());
     }
 
     #[test]

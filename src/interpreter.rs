@@ -85,8 +85,18 @@ pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value
         } => eval_func_dec(&name, &params, r_type, &body, funcs),
         Node::FuncCall { name, args, next } => eval_func_call(&name, args, context, funcs, next),
         Node::Return(expr) => visit(expr, context, funcs),
-        Node::Print { text, next } => {
-            println!("{:#?}", visit(text, context, funcs));
+        // Print node used for easier debugging
+        Node::Print { expr, next } => {
+            let var_name = match *expr.clone() {
+                Node::Var(name) => Some(name),
+                _ => None,
+            };
+
+            match var_name {
+                Some(name) => println!("{:#?} = {:#?}", name, visit(expr, context, funcs)),
+                None => println!("{:#?}", visit(expr, context, funcs)),
+            }
+
             match next {
                 Some(statement) => visit(statement, context, funcs),
                 None => Value::None,
@@ -99,7 +109,7 @@ pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value
 fn eval_func_dec(
     name: &str,
     params: &Vec<Box<Node>>,
-    r_type: LiteralType,
+    r_type: Option<LiteralType>,
     body: &Box<Node>,
     funcs: &mut Funcs,
 ) -> Value {
@@ -321,7 +331,7 @@ fn eval_while_statement(
                 // Return the result of the while statement if it returns anything, otherwise continue the loop
                 match do_stmnt {
                     Value::None => {
-						context.pop();
+                        context.pop();
                         eval_while_statement(cond, statement.clone(), context, funcs, next.clone())
                     }
                     _ => {

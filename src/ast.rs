@@ -29,7 +29,7 @@ pub enum Node {
         next: Option<Box<Node>>,
     }, //
     Print {
-        text: Box<Node>,
+        expr: Box<Node>,
         next: Option<Box<Node>>,
     }, //
     If {
@@ -52,7 +52,7 @@ pub enum Node {
     Func {
         name: String,
         params: Vec<Box<Node>>,
-        r_type: LiteralType,
+        r_type: Option<LiteralType>,
         body: Box<Node>,
     }, //
     FuncParam(Box<Node>, LiteralType), //
@@ -83,7 +83,7 @@ impl Node {
                 ref mut next,
             } => *next = Some(node),
             Node::Print {
-                text: _,
+                expr: _,
                 ref mut next,
             } => *next = Some(node),
             Node::If {
