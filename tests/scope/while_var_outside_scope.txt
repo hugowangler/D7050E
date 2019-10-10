@@ -1,0 +1,8 @@
+fn main() {
+	let x: i32 = 0;
+	while (x < 5) {
+		x = x + 1;
+		let y: i32 = 5;
+	}
+	return y;
+}

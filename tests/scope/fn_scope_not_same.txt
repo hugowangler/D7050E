@@ -1,0 +1,11 @@
+fn test() {
+	let test: i32 = 1337;
+	return test;
+}
+
+fn main() {
+	let main: i32 = test();
+	print(main);
+	print(test);
+}
+

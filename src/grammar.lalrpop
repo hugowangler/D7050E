@@ -1,15 +1,9 @@
 use std::str::FromStr;
 
-use crate::types::{
-    LiteralType,
-    Function
-};
-
-use crate::ast::Node;
-use crate::operators::{
-    BinOpcode,
-    LogOpcode,
-    RelOpcode
+use crate::{
+	types::LiteralType,
+	ast::Node,
+	operators::{BinOpcode, LogOpcode, RelOpcode}
 };
 
 grammar;
@@ -20,20 +14,31 @@ pub Program: Vec<Box<Node>> = {
 }
 
 pub Statement: Box<Node> = {
-    <Keyword> ";" <Statement> => Box::new(Node::Statement(<>)),
-    <Keyword> "}" <Statement> => Box::new(Node::Statement(<>)),
-    <Keyword> ";",
-    <Keyword> "}"
+    <mut curr:Keyword> ";" <next:Statement> => {
+		curr.insert_next(next);
+		curr
+	},
+    <mut curr:Keyword> "}" <next:Statement> => {
+		curr.insert_next(next);
+		curr
+	},
+    <Keyword> ";" => <>,
+    <Keyword> "}" => <>
 };
 
 pub Keyword: Box<Node> = {
     "let" <Assign>,
     "if" <IfStatement>,
     "while" <WhileStatement>,
+    Print,
     AssignValue,
     LoopModifier,
     Return,
     FuncCall
+};
+
+Print: Box<Node> = {
+    "print(" <e:Expr> ")" => Box::new(Node::Print{expr: e, next: None})
 };
 
 VectorizeFuncs: Vec<Box<Node>> = {
@@ -48,43 +53,36 @@ VectorizeFuncs: Vec<Box<Node>> = {
 }
 
 FuncCall: Box<Node> = {
-    <n:FuncName>"("<a:FuncArgs>")" => Box::new(
+    <n:Identifier>"("<a:FuncArgs>")" => Box::new(
         Node::FuncCall{
             name: n,
-            args: a
+            args: a,
+			next: None
         }
     )
 };
 
 // TODO: Empty functions i.e. fn main(){}
 FuncDef: Box<Node> = {
-   "fn" <n:FuncName> "("<p:FuncParams>")" <r:("->" <FuncType>)?> "{" <s:Statement> => Box::new(
+   "fn" <n:Identifier> "("<p:FuncParams>")" <r:("->" <LitType>)?> "{" <s:Statement> => Box::new(
         Node::Func{
             name: n,
             params: p,
             r_type: match r {
-                Some(r) => r,
-                None => Function::ReturnType(LiteralType::None)
+                Some(r) => Some(r),
+                None => None
             },
             body: s,
         }
     )
 };
 
-FuncName: Function = {
-    Identifier => Function::Name(<>)
+FuncArgs: Vec<Box<Node>> = {
+    VectorizeComma<Expr> => <>
 };
 
-FuncArgs: Function = {
-    VectorizeComma<Expr> => Function::Args(<>)
-};
-
-FuncParams: Function = {
-    VectorizeComma<Param> => Function::Params(<>)
-};
-
-FuncType: Function = {
-    LitType => Function::ReturnType(<>)
+FuncParams: Vec<Box<Node>> = {
+    VectorizeComma<Param> => <>
 };
 
 // Creates a vector containing of a comma-seperated list of type T
@@ -120,7 +118,8 @@ WhileStatement: Box<Node> = {
     "(" <c:Cond> ")" "{" <s:Statement> => Box::new(
         Node::While{
             cond: c,
-            statement: s
+            statement: s,
+			next: None
         }
     )
 };
@@ -131,7 +130,8 @@ IfStatement: Box<Node> = {
     "(" <c:Cond> ")" "{" <i:Statement> => Box::new(
         Node::If{
             cond: c,
-            statement: i
+            statement: i,
+			next: None
         }
     ),
 
@@ -140,7 +140,8 @@ IfStatement: Box<Node> = {
         Node::IfElse{
             cond: c,
             if_statement: i,
-            else_statement: e
+            else_statement: e,
+			next: None
         }
     ),
 
@@ -149,7 +150,8 @@ IfStatement: Box<Node> = {
         Node::IfElse{
             cond: c,
             if_statement: i,
-            else_statement: ei  // Contains the else-if statement
+            else_statement: ei,  // Contains the else-if statement
+			next: None
         }
     )
 };
@@ -162,17 +164,16 @@ Cond: Box<Node> = {
 
 // Declaring new vars i.e "let x: i32 = 3;"
 Assign: Box<Node> = {
-    AssignBinding LogExpr => Box::new(Node::Let(<>)),
-    AssignBinding RelExpr => Box::new(Node::Let(<>)),
-    AssignBinding Expr => Box::new(Node::Let(<>)),
+    <a:AssignBinding> <l:LogExpr> => Box::new(Node::Let{var: a, expr: l, next: None}),
+    <a:AssignBinding> <r:RelExpr> => Box::new(Node::Let{var: a, expr: r, next: None}),
+    <a:AssignBinding> <e:Expr> => Box::new(Node::Let{var: a, expr: e, next: None})
 };
 
 // Updating value of vars i.e "x = x + 1;"
 AssignValue: Box<Node> = {
-    <Var> "=" <Expr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <LogExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <RelExpr> => Box::new(Node::VarValue(<>)),
-    <Var> "=" <FuncCall> => Box::new(Node::VarValue(<>)),
+    <v:Var> "=" <e:Expr> => Box::new(Node::VarValue{var: v, expr: e, next: None}),
+    <v:Var> "=" <l:LogExpr> => Box::new(Node::VarValue{var: v, expr: l, next: None}),
+    <v:Var> "=" <r:RelExpr> => Box::new(Node::VarValue{var: v, expr: r, next: None})
 };
 
 AssignBinding: Box<Node> = {
@@ -193,6 +194,7 @@ pub LogExpr: Box<Node> = {
 
 
 // rel = "==, >, >=" etc
+// TODO: Support true == (5 > 4)
 pub RelExpr: Box<Node> = {
     RelExpr RelOp Expr => Box::new(Node::RelOp(<>)),
     Expr RelOp Expr => Box::new(Node::RelOp(<>))
@@ -222,7 +224,13 @@ Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
     Var,
     Bool,
+    _String,
+	FuncCall,
     "(" <Expr> ")"
+};
+
+_String: Box<Node> = {
+    "\"" <Identifier> "\"" => Box::new(Node::_String(<>))
 };
 
 Bool: Box<Node> = {
@@ -232,30 +240,8 @@ Bool: Box<Node> = {
 
 LitType: LiteralType = {
     "bool" => LiteralType::Bool,
-    
-    // Singed
-    "i8" => LiteralType::I8,
-    "i16" => LiteralType::I16,
     "i32" => LiteralType::I32,
-    "i64" => LiteralType::I64,
-    "isize" => LiteralType::Isize,
-
-    // Unsigned
-    "u8" => LiteralType::U8,
-    "u16" => LiteralType::U16,
-    "u32" => LiteralType::U32,
-    "u64" => LiteralType::U64,
-    "usize" => LiteralType::Usize,
-
-    // Floats
-    "f32" => LiteralType::F32,
-    "f64" => LiteralType::F64,
-    
-    //array,
-    //slice,
-    "str" => LiteralType::Str,
-    "char" => LiteralType::Char
-
+    "String" => LiteralType::_String,
 };
 
 LogOp: LogOpcode = {

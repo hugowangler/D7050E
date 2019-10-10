@@ -1,0 +1,10 @@
+fn main() {
+	let x: i32 = 1;
+	if(x == 1) {
+		let x: i32 = 20;
+		return x;
+	} else {
+		x = 10;
+		return x;
+	}
+}
