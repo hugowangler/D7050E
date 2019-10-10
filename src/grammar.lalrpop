@@ -247,7 +247,6 @@ LitType: LiteralType = {
 LogOp: LogOpcode = {
     "&&" => LogOpcode::AND,
     "||" => LogOpcode::OR,
-    // "!" => LogOpcode::NOT
 };
 
 RelOp: RelOpcode = {

@@ -10,7 +10,6 @@ pub enum BinOpcode {
 pub enum LogOpcode {
     AND,
     OR,
-    // NOT
 }
 
 #[derive(Clone, Debug, PartialEq)]
