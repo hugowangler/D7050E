@@ -1,13 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    ast::Node,
-    context::Context,
-    function::Func,
-    operators::{BinOpcode, LogOpcode, RelOpcode},
-    scope::Scope,
-    types::LiteralType,
-    value::Value,
+    ast::Node, context::Context, function::Func, operators::Opcode, scope::Scope,
+    types::LiteralType, value::Value,
 };
 
 type Funcs = HashMap<String, Func>; // Stores all the function names and the their structs
@@ -36,17 +31,7 @@ pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value
         Node::VarValue { var, expr, next } => {
             update_var(var, visit(expr, context, funcs), context, funcs, next)
         }
-        Node::BinOp(left, op, right) => eval_bin_op(
-            visit(left, context, funcs),
-            op,
-            visit(right, context, funcs),
-        ),
-        Node::RelOp(left, op, right) => eval_rel_op(
-            visit(left, context, funcs),
-            op,
-            visit(right, context, funcs),
-        ),
-        Node::LogOp(left, op, right) => eval_log_op(
+        Node::Expr(left, op, right) => eval_expr(
             visit(left, context, funcs),
             op,
             visit(right, context, funcs),
@@ -142,6 +127,7 @@ fn eval_func_call(
     }
 }
 
+// TODO: Allow for only def. a variable and not having to assign value
 fn assign_var(
     var: Box<Node>,
     expr: Value,
@@ -177,7 +163,10 @@ fn update_var(
     match *var {
         Node::Var(name) => {
             match context.update_var(name.clone(), expr) {
-                None => panic!("update_var: Variable \"{}\" is not defined", name),
+                None => panic!(
+                    "Variable \"{}\" is not defined, try: Let {}: <type> = <expr>;",
+                    name, name
+                ),
                 Some(_) => (),
             };
         }
@@ -193,31 +182,37 @@ fn update_var(
 fn eval_var(name: &str, context: &mut Context) -> Value {
     match context.get_var(name) {
         Some(value) => value,
-        None => panic!("eval_var: Variable \"{}\" is not defined", name),
+        None => panic!("Variable \"{}\" is not defined", name),
     }
 }
 
-// TODO: add floats to grammar and handle them here
-fn eval_bin_op(left: Value, op: BinOpcode, right: Value) -> Value {
-    let l = match left {
-        Value::Number(num) => num,
-        _ => panic!("eval_bin_op LEFT no number"),
-    };
+fn eval_expr(left: Value, op: Opcode, right: Value) -> Value {
+    match op {
+        Opcode::Add | Opcode::Sub | Opcode::Div | Opcode::Mul => eval_num_expr(left, op, right),
+        Opcode::AND | Opcode::OR => eval_log_op(left, op, right),
+        Opcode::EQ | Opcode::NEQ | Opcode::GT | Opcode::LT | Opcode::LEQ | Opcode::GEQ => {
+            eval_rel_op(left, op, right)
+        }
+    }
+}
 
-    let r = match right {
-        Value::Number(num) => num,
-        _ => panic!("eval_bin_op RIGHT no number"),
+/// Evaluates an expression which will result in a number (Value::Number enum)
+fn eval_num_expr(left: Value, op: Opcode, right: Value) -> Value {
+    let (l, r) = match (left.clone(), right.clone()) {
+        (Value::Number(l_num), Value::Number(r_num)) => (l_num, r_num),
+        _ => panic!("Left or right part of number expression not a number, found: left = {:#?} and right = {:#?}", left, right),
     };
 
     match op {
-        BinOpcode::Add => Value::Number(l + r),
-        BinOpcode::Sub => Value::Number(l - r),
-        BinOpcode::Div => Value::Number(l / r),
-        BinOpcode::Mul => Value::Number(l * r),
+        Opcode::Add => Value::Number(l + r),
+        Opcode::Sub => Value::Number(l - r),
+        Opcode::Div => Value::Number(l / r),
+        Opcode::Mul => Value::Number(l * r),
+        _ => panic!("Wrong operation for evaluating a expression resulting in a number"),
     }
 }
 
-fn eval_rel_op(left: Value, op: RelOpcode, right: Value) -> Value {
+fn eval_rel_op(left: Value, op: Opcode, right: Value) -> Value {
     match (left, right) {
         (Value::Number(l_num), Value::Number(r_num)) => eval_num_rel_op(l_num, op, r_num),
         (Value::Bool(l_bool), Value::Bool(r_bool)) => eval_bool_rel_op(l_bool, op, r_bool),
@@ -225,34 +220,36 @@ fn eval_rel_op(left: Value, op: RelOpcode, right: Value) -> Value {
     }
 }
 
-fn eval_num_rel_op(left: i32, op: RelOpcode, right: i32) -> Value {
+fn eval_num_rel_op(left: i32, op: Opcode, right: i32) -> Value {
     match op {
-        RelOpcode::EQ => Value::Bool(left == right),
-        RelOpcode::NEQ => Value::Bool(left != right),
-        RelOpcode::GT => Value::Bool(left > right),
-        RelOpcode::LT => Value::Bool(left < right),
-        RelOpcode::GEQ => Value::Bool(left >= right),
-        RelOpcode::LEQ => Value::Bool(left <= right),
+        Opcode::EQ => Value::Bool(left == right),
+        Opcode::NEQ => Value::Bool(left != right),
+        Opcode::GT => Value::Bool(left > right),
+        Opcode::LT => Value::Bool(left < right),
+        Opcode::GEQ => Value::Bool(left >= right),
+        Opcode::LEQ => Value::Bool(left <= right),
+        _ => panic!("eval num rel op"),
     }
 }
 
-fn eval_bool_rel_op(left: bool, op: RelOpcode, right: bool) -> Value {
+fn eval_bool_rel_op(left: bool, op: Opcode, right: bool) -> Value {
     match op {
-        RelOpcode::EQ => Value::Bool(left == right),
-        RelOpcode::NEQ => Value::Bool(left != right),
+        Opcode::EQ => Value::Bool(left == right),
+        Opcode::NEQ => Value::Bool(left != right),
         _ => panic!("eval_bool_rel_op OPERATION not valid for booleans"),
     }
 }
 
-fn eval_log_op(left: Value, op: LogOpcode, right: Value) -> Value {
+fn eval_log_op(left: Value, op: Opcode, right: Value) -> Value {
     let (l, r) = match (left, right) {
         (Value::Bool(l_bool), Value::Bool(r_bool)) => (l_bool, r_bool),
         _ => panic!("eval_log_op LEFT and RIGHT not both booleans"),
     };
 
     match op {
-        LogOpcode::AND => Value::Bool(l && r),
-        LogOpcode::OR => Value::Bool(l || r),
+        Opcode::AND => Value::Bool(l && r),
+        Opcode::OR => Value::Bool(l || r),
+        _ => panic!("eval log op"),
     }
 }
 
