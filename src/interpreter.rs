@@ -208,7 +208,7 @@ fn eval_num_expr(left: Value, op: Opcode, right: Value) -> Value {
         Opcode::Sub => Value::Number(l - r),
         Opcode::Div => Value::Number(l / r),
         Opcode::Mul => Value::Number(l * r),
-        _ => panic!("Wrong operation for evaluating a expression resulting in a number"),
+        _ => panic!("Wrong operation for evaluating a expression resulting in a number, found: {}", op.to_string()),
     }
 }
 
@@ -228,7 +228,8 @@ fn eval_num_rel_op(left: i32, op: Opcode, right: i32) -> Value {
         Opcode::LT => Value::Bool(left < right),
         Opcode::GEQ => Value::Bool(left >= right),
         Opcode::LEQ => Value::Bool(left <= right),
-        _ => panic!("eval num rel op"),
+		_ => panic!("Wrong operation for evaluating a relational expression, found: {}", op.to_string()),
+
     }
 }
 
@@ -236,7 +237,7 @@ fn eval_bool_rel_op(left: bool, op: Opcode, right: bool) -> Value {
     match op {
         Opcode::EQ => Value::Bool(left == right),
         Opcode::NEQ => Value::Bool(left != right),
-        _ => panic!("eval_bool_rel_op OPERATION not valid for booleans"),
+        _ => panic!("Wrong operation for evaluating a relational expression, found: {}", op.to_string()),
     }
 }
 
@@ -249,7 +250,7 @@ fn eval_log_op(left: Value, op: Opcode, right: Value) -> Value {
     match op {
         Opcode::AND => Value::Bool(l && r),
         Opcode::OR => Value::Bool(l || r),
-        _ => panic!("eval log op"),
+        _ => panic!("Wrong operation for evaluating a logical expression, found: {}", op.to_string()),
     }
 }
 
