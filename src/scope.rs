@@ -18,10 +18,13 @@ impl Scope {
         let mut scope = Scope::new();
         for pair in vars.iter() {
             let (param, arg) = pair;
+			// Insert a variable into the scope with name and mutability of the parameter and value of the argument
             match param {
-                Node::FuncParam(var, _typ) => {
+                Node::FuncParam(var, _, mutable) => {
                     match &**var {
-                        Node::Var(name) => scope.vars.insert(name.to_string(), arg.clone()),
+                        Node::Var(name) => scope
+                            .vars
+                            .insert(name.to_string(), Variable::new(arg.clone(), *mutable)),
                         _ => unreachable!(),
                     };
                 }

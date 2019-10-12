@@ -11,7 +11,7 @@ impl Context {
     }
 
     pub fn insert_var(&mut self, name: String, mutable: bool, value: Value) {
-		let new_var = Variable::new(value, mutable);
+        let new_var = Variable::new(value, mutable);
         match self.scopes.iter_mut().last() {
             Some(scope) => scope.vars.insert(name, new_var),
             None => panic!("insert_var: No scope in context"),
@@ -20,18 +20,18 @@ impl Context {
 
     pub fn update_var(&mut self, name: String, value: Value) -> Option<Value> {
         for scope in self.scopes.iter_mut().rev() {
-            match scope.vars.get(&name.clone()) {
+            match scope.vars.get_mut(&name.clone()) {
                 Some(var) => {
-					if var.is_mut() {
-						var.update_value(value);
-					} else {
-						panic!("Cannot assign twice to immutable variable \"{}\"", name)
-					}
-				}
+                    if var.is_mut() {
+                        return Some(var.update_value(value.clone()));
+                    } else {
+                        panic!("Cannot assign twice to immutable variable \"{}\"", name)
+                    }
+                }
                 None => (),
             };
         }
-        None	// Variable was not found in any scope
+        None // Variable was not found in any scope
     }
 
     pub fn get_var(&mut self, name: &str) -> Option<Value> {

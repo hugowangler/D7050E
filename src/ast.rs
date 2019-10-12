@@ -6,7 +6,7 @@ pub enum Node {
     Bool(bool),      //
     _String(String), //
 
-    Var(String),                        //
+    Var(String),                              //
     VarBinding(Box<Node>, LiteralType, bool), //
 
     Expr(Box<Node>, Opcode, Box<Node>), //
@@ -51,7 +51,7 @@ pub enum Node {
         r_type: Option<LiteralType>,
         body: Box<Node>,
     }, //
-    FuncParam(Box<Node>, LiteralType), //
+    FuncParam(Box<Node>, LiteralType, bool), //
     FuncCall {
         name: String,
         args: Vec<Box<Node>>,

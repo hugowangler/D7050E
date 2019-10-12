@@ -93,13 +93,21 @@ VectorizeComma<T>: Vec<Box<Node>> = {
             v.push(e);
             v
         },
-
         None => v
     }
 }
 
 Param: Box<Node> = {
-    <Var> ":" <LitType> => Box::new(Node::FuncParam(<>))
+    <m:("mut")?> <v:Var> ":" <t:LitType> => Box::new(
+		Node::FuncParam(
+			v,
+			t,
+			match m {
+				Some(m) => true,
+				None => false
+			}
+		)
+	)
 };
 
 Return: Box<Node> = {
