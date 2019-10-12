@@ -28,6 +28,40 @@ pub fn run(path: &Path) -> Option<Value> {
 mod tests {
     use super::*;
 
+    // Expression precedence
+    #[test]
+    fn add_sub_mul_prec() {
+        assert_eq!(
+            run(Path::new("tests/precedence/add_sub.txt")),
+            Some(Value::Number(9))
+        );
+        assert_eq!(
+            run(Path::new("tests/precedence/add_sub_mul.txt")),
+            Some(Value::Number(27))
+        );
+    }
+
+    #[test]
+    fn paran_prec() {
+        assert_eq!(
+            run(Path::new("tests/precedence/paran_mul.txt")),
+            Some(Value::Number(24))
+        );
+        assert_eq!(
+            run(Path::new("tests/precedence/paran_mul_rev.txt")),
+            Some(Value::Number(24))
+        );
+        assert_eq!(
+            run(Path::new("tests/precedence/paran_add.txt")),
+            Some(Value::Number(25))
+        );
+        assert_eq!(
+            run(Path::new("tests/precedence/paran_add_rev.txt")),
+            Some(Value::Number(25))
+        );
+    }
+
+    // Scopes
     #[test]
     fn if_update_var_in_new_scope() {
         let res = run(Path::new("tests/scope/if_update_var_new_scope.txt"));
@@ -118,6 +152,7 @@ mod tests {
         run(Path::new("tests/scope/if_else_var_outside_scope.txt"));
     }
 
+    // Functions
     #[test]
     fn fn_sum() {
         let res = run(Path::new("tests/function/sum.txt"));

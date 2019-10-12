@@ -1,7 +1,4 @@
-use crate::{
-    operators::{BinOpcode, LogOpcode, RelOpcode},
-    types::LiteralType,
-};
+use crate::{operators::Opcode, types::LiteralType};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
@@ -12,9 +9,8 @@ pub enum Node {
     Var(String),                        //
     VarBinding(Box<Node>, LiteralType), //
 
-    BinOp(Box<Node>, BinOpcode, Box<Node>), //
-    LogOp(Box<Node>, LogOpcode, Box<Node>), //
-    RelOp(Box<Node>, RelOpcode, Box<Node>), //
+    Expr(Box<Node>, Opcode, Box<Node>), //
+    UnaryOp(Opcode, Box<Node>),
 
     // Keywords
     // Keywords contain an optional field for the "next" node in the ast which contains other keywords
@@ -66,7 +62,7 @@ pub enum Node {
     Break,
     Continue,
 
-    Return(Box<Node>),
+    Return(Box<Node>), //
 }
 
 impl Node {
