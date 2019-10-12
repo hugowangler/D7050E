@@ -1,0 +1,5 @@
+fn main() {
+	let mut a: i32 = 50;
+	a = a + 50;
+	return a;
+}

@@ -1,5 +1,5 @@
 fn main() {
-	let x: i32 = 0;
+	let mut x: i32 = 0;
 	let y: i32 = 0;
 	while(x < 4) {
 		x = x + 1;

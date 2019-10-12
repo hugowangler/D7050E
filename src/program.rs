@@ -164,4 +164,27 @@ mod tests {
         let res = run(Path::new("tests/function/fibonacci.txt"));
         assert_eq!(res, Some(Value::Number(6765)))
     }
+
+	// Mutability
+	#[test]
+	#[should_panic]
+	fn no_mut_var() {
+		run(Path::new("tests/mutability/no_mut_var.txt"));
+	}
+
+	#[test]
+	fn mut_var() {
+		assert_eq!(run(Path::new("tests/mutability/mut_var.txt")), Some(Value::Number(100)));
+	}
+
+	#[test]
+	#[should_panic]
+	fn fn_no_mut_param() {
+		run(Path::new("tests/mutability/fn_no_mut_param.txt"));
+	}
+
+	#[test]
+	fn fn_mut_param() {
+		assert_eq!(run(Path::new("tests/mutability/fn_mut_param.txt")), Some(Value::Number(51)));
+	}
 }
