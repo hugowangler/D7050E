@@ -25,6 +25,7 @@ pub fn interp(mut funcs_ast: Vec<Box<Node>>) -> Option<Value> {
 pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value {
     match *node {
         Node::Number(num) => Value::Number(num),
+        Node::UnaryOp(op, num) => eval_unary(op, num),
         Node::Bool(b) => Value::Bool(b),
         Node::_String(text) => Value::String(text),
         Node::Var(name) => eval_var(&name, context),
@@ -186,6 +187,18 @@ fn eval_var(name: &str, context: &mut Context) -> Value {
     }
 }
 
+fn eval_unary(op: Opcode, num: Box<Node>) -> Value {
+    let n = match *num {
+        Node::Number(n) => n,
+        _ => unreachable!(),
+    };
+
+    match op {
+        Opcode::Sub => Value::Number(-n),
+        _ => unreachable!(),
+    }
+}
+
 fn eval_expr(left: Value, op: Opcode, right: Value) -> Value {
     match op {
         Opcode::Add | Opcode::Sub | Opcode::Div | Opcode::Mul => eval_num_expr(left, op, right),
@@ -208,7 +221,10 @@ fn eval_num_expr(left: Value, op: Opcode, right: Value) -> Value {
         Opcode::Sub => Value::Number(l - r),
         Opcode::Div => Value::Number(l / r),
         Opcode::Mul => Value::Number(l * r),
-        _ => panic!("Wrong operation for evaluating a expression resulting in a number, found: {}", op.to_string()),
+        _ => panic!(
+            "Wrong operation for evaluating a expression resulting in a number, found: {}",
+            op.to_string()
+        ),
     }
 }
 
@@ -228,8 +244,10 @@ fn eval_num_rel_op(left: i32, op: Opcode, right: i32) -> Value {
         Opcode::LT => Value::Bool(left < right),
         Opcode::GEQ => Value::Bool(left >= right),
         Opcode::LEQ => Value::Bool(left <= right),
-		_ => panic!("Wrong operation for evaluating a relational expression, found: {}", op.to_string()),
-
+        _ => panic!(
+            "Wrong operation for evaluating a relational expression, found: {}",
+            op.to_string()
+        ),
     }
 }
 
@@ -237,7 +255,10 @@ fn eval_bool_rel_op(left: bool, op: Opcode, right: bool) -> Value {
     match op {
         Opcode::EQ => Value::Bool(left == right),
         Opcode::NEQ => Value::Bool(left != right),
-        _ => panic!("Wrong operation for evaluating a relational expression, found: {}", op.to_string()),
+        _ => panic!(
+            "Wrong operation for evaluating a relational expression, found: {}",
+            op.to_string()
+        ),
     }
 }
 
@@ -250,7 +271,10 @@ fn eval_log_op(left: Value, op: Opcode, right: Value) -> Value {
     match op {
         Opcode::AND => Value::Bool(l && r),
         Opcode::OR => Value::Bool(l || r),
-        _ => panic!("Wrong operation for evaluating a logical expression, found: {}", op.to_string()),
+        _ => panic!(
+            "Wrong operation for evaluating a logical expression, found: {}",
+            op.to_string()
+        ),
     }
 }
 

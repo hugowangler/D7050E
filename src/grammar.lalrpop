@@ -174,36 +174,47 @@ AssignBinding: Box<Node> = {
 
 pub Expr: Box<Node> = {
     Expr ExprOp Factor => Box::new(Node::Expr(<>)),
+	Expr ExprRelOp Factor => Box::new(Node::Expr(<>)),
     Factor
 };
 
 ExprOp: Opcode = {
     "+" => Opcode::Add,
     "-" => Opcode::Sub,
+};
 
+ExprRelOp: Opcode = {
 	"==" => Opcode::EQ,
     "!=" => Opcode::NEQ,
     ">" => Opcode::GT,
     "<" => Opcode::LT,
     ">=" => Opcode::GEQ,
-    "<=" => Opcode::LEQ
+    "<=" => Opcode::LEQ,
 };
 
 Factor: Box<Node> = {
     Factor FactorOp Term => Box::new(Node::Expr(<>)),
+	Factor FactorLogOp Term => Box::new(Node::Expr(<>)),
     Term
 };
 
 FactorOp: Opcode = {
     "*" => Opcode::Mul,
     "/" => Opcode::Div,
+};
 
+FactorLogOp: Opcode = {
 	"&&" => Opcode::AND,
     "||" => Opcode::OR,
 };
 
+UnaryOp: Opcode = {
+	"-" => Opcode::Sub
+};
+
 Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
+	<o:UnaryOp> <n:Num> => Box::new(Node::UnaryOp(o, Box::new(Node::Number(n)))),
     Var,
     Bool,
     _String,
