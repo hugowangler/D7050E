@@ -1,4 +1,4 @@
-use crate::{scope::Scope, value::Value};
+use crate::{scope::Scope, value::Value, variable::Variable};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Context {
@@ -10,9 +10,10 @@ impl Context {
         Context { scopes: vec![] }
     }
 
-    pub fn insert_var(&mut self, name: String, value: Value) {
+    pub fn insert_var(&mut self, name: String, mutable: bool, value: Value) {
+		let new_var = Variable::new(value, mutable);
         match self.scopes.iter_mut().last() {
-            Some(scope) => scope.vars.insert(name, value),
+            Some(scope) => scope.vars.insert(name, new_var),
             None => panic!("insert_var: No scope in context"),
         };
     }
@@ -20,17 +21,23 @@ impl Context {
     pub fn update_var(&mut self, name: String, value: Value) -> Option<Value> {
         for scope in self.scopes.iter_mut().rev() {
             match scope.vars.get(&name.clone()) {
-                Some(_) => return scope.vars.insert(name.clone(), value.clone()),
+                Some(var) => {
+					if var.is_mut() {
+						var.update_value(value);
+					} else {
+						panic!("Cannot assign twice to immutable variable \"{}\"", name)
+					}
+				}
                 None => (),
             };
         }
-        None
+        None	// Variable was not found in any scope
     }
 
     pub fn get_var(&mut self, name: &str) -> Option<Value> {
         for scope in self.scopes.iter().rev() {
             match scope.vars.get(name) {
-                Some(value) => return Some(value.clone()),
+                Some(var) => return Some(var.get_value()),
                 None => (),
             };
         }

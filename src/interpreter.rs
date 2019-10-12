@@ -137,7 +137,7 @@ fn assign_var(
     next: Option<Box<Node>>,
 ) -> Value {
     match *var {
-        Node::VarBinding(var, _var_type) => def_var(var, expr, context),
+        Node::VarBinding(var, _, mutable) => def_var(var, mutable, expr, context),
         _ => panic!("assign_var: No VarBinding node"),
     }
 
@@ -147,9 +147,9 @@ fn assign_var(
     }
 }
 
-fn def_var(var: Box<Node>, expr: Value, context: &mut Context) {
+fn def_var(var: Box<Node>, mutable: bool, expr: Value, context: &mut Context) {
     match *var {
-        Node::Var(name) => context.insert_var(name, expr),
+        Node::Var(name) => context.insert_var(name, mutable, expr),
         _ => panic!("def_var: No var node"),
     }
 }

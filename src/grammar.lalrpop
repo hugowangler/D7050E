@@ -169,7 +169,16 @@ AssignValue: Box<Node> = {
 };
 
 AssignBinding: Box<Node> = {
-    <Var> ":" <LitType> "=" => Box::new(Node::VarBinding(<>))
+    <m:("mut")?> <v:Var> ":" <t:LitType> "=" => Box::new(
+		Node::VarBinding(
+			v, 
+			t,
+			match m {
+				Some(m) => true,
+				None => false
+			}
+		)
+	)
 };
 
 pub Expr: Box<Node> = {

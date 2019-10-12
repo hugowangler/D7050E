@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{ast::Node, value::Value};
+use crate::{ast::Node, value::Value, variable::Variable};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Scope {
-    pub vars: HashMap<String, Value>,
+    pub vars: HashMap<String, Variable>,
 }
 
 impl Scope {
@@ -22,10 +22,10 @@ impl Scope {
                 Node::FuncParam(var, _typ) => {
                     match &**var {
                         Node::Var(name) => scope.vars.insert(name.to_string(), arg.clone()),
-                        _ => panic!("Scope.init no var node in FuncParam"),
+                        _ => unreachable!(),
                     };
                 }
-                _ => panic!("Scope.init: Param is not a FuncParam node"),
+                _ => unreachable!(),
             }
         }
         scope

@@ -7,7 +7,7 @@ pub enum Node {
     _String(String), //
 
     Var(String),                        //
-    VarBinding(Box<Node>, LiteralType), //
+    VarBinding(Box<Node>, LiteralType, bool), //
 
     Expr(Box<Node>, Opcode, Box<Node>), //
     UnaryOp(Opcode, Box<Node>),

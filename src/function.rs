@@ -38,6 +38,7 @@ impl Func {
         self.check_args(&args);
         let mut param_arg = vec![];
 
+		// Create a scope containing the parameters with value of the arguments
         for pair in self.params.iter().zip(args.iter()) {
             let (param, arg) = pair;
             param_arg.push((&**param, visit(arg.clone(), context, funcs)));

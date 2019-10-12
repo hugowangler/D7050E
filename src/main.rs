@@ -11,6 +11,7 @@ mod program;
 mod scope;
 mod types;
 mod value;
+mod variable;
 
 use std::path::Path;
 
