@@ -20,7 +20,7 @@ impl Variable {
 
     pub fn update_value(&mut self, val: Value) -> Value {
         self.value = val.clone();
-		val
+        val
     }
 
     pub fn is_mut(&self) -> bool {
