@@ -10,6 +10,7 @@ pub struct TypeErrors {
 #[derive(Debug)]
 pub enum ErrorKind {
     OpWrongType { op: Opcode, typ: LiteralType },
+    MismatchedTypes{var: String, expected: LiteralType, found: LiteralType}
 }
 
 impl fmt::Display for ErrorKind {
@@ -37,6 +38,13 @@ impl fmt::Display for ErrorKind {
                     )
                 }
             },
+            ErrorKind::MismatchedTypes{var, expected, found} => write!(
+                f,
+                "Mismatched type for variable '{}': expected {}, found {}",
+                var,
+                expected.to_string(),
+                found.to_string()
+            )
         }
     }
 }

@@ -147,13 +147,22 @@ fn var_dec(
     next: Option<Box<Node>>,
 ) -> Option<LiteralType> {
     match *var {
-        Node::VarBinding(var, typ, mutable) => {
-            // Add the variable to the context so it can be used to evaluate typ if used in other expr
-            match *var {
-                Node::Var(name) => context.insert_var(name, mutable, typ, Value::None),
+        Node::VarBinding(var, var_type, mutable) => {
+            // Add the variable to the context so it can be used to type check if used in other expr
+            let name = match *var {
+                Node::Var(name) => name,
                 _ => unreachable!(),
+            };
+            
+            let expr_type = match expr_type {
+                Some(typ) => typ,
+                None => None
+            };
+
+            if expr_type != var_type {
+                err.insert_err(ErrorKind::MismatchedTypes{var: , expected: , found: })
             }
-            Some(typ)
+            Some(var_type)
         }
         _ => unreachable!(),
     }
