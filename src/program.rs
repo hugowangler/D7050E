@@ -1,6 +1,8 @@
 use std::{error::Error, fs::File, io::prelude::*, path::Path};
 
-use crate::{interpreter::interp, parse::program_parser::parse, value::Value};
+use crate::{
+    interpreter::interp, parse::program_parser::parse, type_checker::type_check, value::Value,
+};
 
 pub fn run(path: &Path) -> Option<Value> {
     let display = path.display();
@@ -18,7 +20,16 @@ pub fn run(path: &Path) -> Option<Value> {
     match parse(input) {
         Ok(parsed_prog) => {
             print!("parsed_prog = {:#?}", &parsed_prog);
-            interp(parsed_prog)
+            // interp(parsed_prog)
+            match type_check(parsed_prog.clone()) {
+                Ok(_) => interp(parsed_prog),
+                Err(e) => {
+                    for error in e.errors.iter() {
+                        println!("Error: {}", error);
+                    }
+                    None
+                }
+            }
         }
         Err(e) => panic!("Error while parsing program: {:?}", e),
     }

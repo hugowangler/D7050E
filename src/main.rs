@@ -9,6 +9,8 @@ mod operators;
 mod parse;
 mod program;
 mod scope;
+mod type_checker;
+mod type_errors;
 mod types;
 mod value;
 mod variable;
