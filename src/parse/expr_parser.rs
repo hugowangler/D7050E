@@ -101,5 +101,4 @@ mod tests {
         assert!(parse("b && (1+2))").is_err());
         assert!(parse("c && ((1+2))").is_ok());
     }
-
 }
