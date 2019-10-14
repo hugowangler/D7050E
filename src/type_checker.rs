@@ -35,6 +35,7 @@ pub fn type_check(mut funcs_ast: Vec<Box<Node>>) -> Result<(), TypeErrors> {
     }
 
     if type_errors.len() > 0 {
+        // println!("{:?}", type_errors);
         return Err(type_errors);
     }
     Ok(())
@@ -60,12 +61,12 @@ fn visit(
     context: &mut Context,
     funcs: &mut Funcs,
     err: &mut TypeErrors,
-) -> Option<LiteralType> {
+) -> Result<LiteralType, ()> {
     match *node {
-        Node::Number(_) => Some(LiteralType::I32),
-        Node::Bool(_) => Some(LiteralType::Bool),
-        Node::_String(_) => Some(LiteralType::_String),
-        Node::UnaryOp(_, _) => Some(LiteralType::I32),
+        Node::Number(_) => Ok(LiteralType::I32),
+        Node::Bool(_) => Ok(LiteralType::Bool),
+        Node::_String(_) => Ok(LiteralType::_String),
+        Node::UnaryOp(_, _) => Ok(LiteralType::I32),
         Node::Expr(left, op, right) => expr(
             visit(left, context, funcs, err),
             op,
@@ -85,85 +86,316 @@ fn visit(
 }
 
 fn expr(
-    left: Option<LiteralType>,
+    left: Result<LiteralType, ()>,
     op: Opcode,
-    right: Option<LiteralType>,
+    right: Result<LiteralType, ()>,
     err: &mut TypeErrors,
-) -> Option<LiteralType> {
-    match op {
-        Opcode::Add | Opcode::Sub | Opcode::Div | Opcode::Mul => num_expr(left, op, right, err),
-        Opcode::AND | Opcode::OR => log_op(left, right, err),
-        Opcode::EQ | Opcode::NEQ | Opcode::GT | Opcode::LT | Opcode::LEQ | Opcode::GEQ => {
-            rel_op(left, right, err)
+) -> Result<LiteralType, ()> {
+    // Determine if the left and right sub expressions evaluated to a type
+    let (l, r) = match (left, right) {
+        (Ok(l_type), Ok(r_type)) => (Some(l_type), Some(r_type)),
+        _ => (None, None),
+    };
+
+    // If left and right has a type, calculate new type
+    if let (Some(left), Some(right)) = (l, r) {
+        match op {
+            Opcode::Add | Opcode::Sub | Opcode::Div | Opcode::Mul => num_expr(left, op, right, err),
+            Opcode::AND | Opcode::OR => log_op(left, op, right, err),
+            Opcode::EQ | Opcode::NEQ | Opcode::GT | Opcode::LT | Opcode::LEQ | Opcode::GEQ => {
+                rel_op(left, op, right, err)
+            }
         }
+    } else {
+        Err(())
     }
 }
 
 fn num_expr(
-    left: Option<LiteralType>,
+    left: LiteralType,
     op: Opcode,
-    right: Option<LiteralType>,
+    right: LiteralType,
     err: &mut TypeErrors,
-) -> Option<LiteralType> {
-    if let (Some(LiteralType::I32), Some(LiteralType::I32)) = (left, right) {
-        return Some(LiteralType::I32);
+) -> Result<LiteralType, ()> {
+    if let (LiteralType::I32, LiteralType::I32) = (left, right) {
+        return Ok(LiteralType::I32);
     } else {
         err.insert_err(ErrorKind::OpWrongType {
             op: op,
             typ: LiteralType::Bool,
         });
     }
-    None
+    Err(())
 }
 
 fn log_op(
-    left: Option<LiteralType>,
-    right: Option<LiteralType>,
+    left: LiteralType,
+    op: Opcode,
+    right: LiteralType,
     err: &mut TypeErrors,
-) -> Option<LiteralType> {
-    match (left, right) {
-        (Some(LiteralType::Bool), Some(LiteralType::Bool)) => Some(LiteralType::Bool),
-        _ => panic!("log op"),
+) -> Result<LiteralType, ()> {
+    if let (LiteralType::Bool, LiteralType::Bool) = (left, right) {
+        return Ok(LiteralType::Bool);
+    } else {
+        err.insert_err(ErrorKind::OpWrongType {
+            op: op,
+            typ: LiteralType::I32,
+        });
     }
+    Err(())
 }
 
 fn rel_op(
-    left: Option<LiteralType>,
-    right: Option<LiteralType>,
+    left: LiteralType,
+    op: Opcode,
+    right: LiteralType,
     err: &mut TypeErrors,
-) -> Option<LiteralType> {
-    match (left, right) {
-        (Some(LiteralType::Bool), Some(LiteralType::Bool)) => Some(LiteralType::Bool),
-        _ => panic!("log op"),
+) -> Result<LiteralType, ()> {
+    match op {
+        Opcode::EQ | Opcode::NEQ => {
+            // '==' and '!=' can compare bools or i32s, otherwise type error
+            if let (LiteralType::Bool, LiteralType::Bool) | (LiteralType::I32, LiteralType::I32) =
+                (left, right)
+            {
+                return Ok(LiteralType::Bool);
+            } else {
+				// Relational operations expects right to be same type as left
+                err.insert_err(ErrorKind::MismatchedTypesOp {
+                    op: op,
+                    found: right,
+					expected: left
+                });
+            }
+            return Err(());
+        }
+        Opcode::GT | Opcode::LT | Opcode::LEQ | Opcode::GEQ => {
+            // '>', '<', '<=' and '>=' can compare i32s, otherwise type error
+            if let (LiteralType::I32, LiteralType::I32) = (left, right) {
+                return Ok(LiteralType::Bool);
+            } else {
+                err.insert_err(ErrorKind::OpWrongType {
+                    op: op,
+                    typ: LiteralType::Bool,
+                });
+            }
+            return Err(());
+        }
+        _ => unreachable!(),
     }
 }
 
 fn var_dec(
     var: Box<Node>,
-    expr_type: Option<LiteralType>,
+    expr_type: Result<LiteralType, ()>,
     context: &mut Context,
     funcs: &mut Funcs,
     err: &mut TypeErrors,
     next: Option<Box<Node>>,
-) -> Option<LiteralType> {
-    match *var {
-        Node::VarBinding(var, var_type, mutable) => {
-            // Add the variable to the context so it can be used to type check if used in other expr
-            let name = match *var {
-                Node::Var(name) => name,
-                _ => unreachable!(),
-            };
-            
-            let expr_type = match expr_type {
-                Some(typ) => typ,
-                None => None
-            };
+) -> Result<LiteralType, ()> {
+    let expr_type = match expr_type {
+        Ok(typ) => Some(typ),
+        Err(_) => None,
+    };
 
-            if expr_type != var_type {
-                err.insert_err(ErrorKind::MismatchedTypes{var: , expected: , found: })
+    match expr_type {
+        Some(expr_type) => match *var {
+            Node::VarBinding(var, var_type, mutable) => {
+                let name = match *var {
+                    Node::Var(name) => name,
+                    _ => unreachable!(),
+                };
+                // Add the variable to the context so it can be used to type check if used in other expr
+                context.insert_var(name.clone(), mutable, var_type, Value::None);
+
+                // Handle mismatched types
+                let mut ret = Ok(var_type);
+                if expr_type != var_type {
+                    err.insert_err(ErrorKind::MismatchedTypesVar {
+                        var: name,
+                        expected: var_type,
+                        found: expr_type,
+                    });
+                    ret = Err(());
+                }
+
+                match next {
+                    Some(next) => return visit(next, context, funcs, err),
+                    None => ret,
+                }
             }
-            Some(var_type)
-        }
-        _ => unreachable!(),
+            _ => unreachable!(),
+        },
+        None => match next {
+            Some(next) => return visit(next, context, funcs, err),
+            None => Err(()),
+        },
+    }
+}
+
+// --------------------------- TESTS ---------------------------
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parse::program_parser::parse;
+
+    #[test]
+    fn op_type_num_expr_bool() {
+        let input = parse(
+            "fn main() {
+				let a: i32 = 1 + true;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::OpWrongType {
+            op: Opcode::Add,
+            typ: LiteralType::Bool,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+    }
+
+    #[test]
+    fn op_type_num_expr_num() {
+        let input = parse(
+            "fn main() {
+				let a: i32 = 1 + 2;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        assert!(type_check(input).is_ok());
+    }
+
+    #[test]
+    fn op_type_rel_expr_num() {
+        let input = parse(
+            "fn main() {
+				let a: bool = 1 > 2;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        assert!(type_check(input).is_ok());
+    }
+
+    #[test]
+    fn op_type_rel_expr_bool() {
+        let input = parse(
+            "fn main() {
+				let a: bool = 1 > false;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::OpWrongType {
+            op: Opcode::GT,
+            typ: LiteralType::Bool,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+    }
+
+    #[test]
+    fn op_type_log_expr_mix() {
+        let input = parse(
+            "fn main() {
+				let a: bool = 1 == false;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::MismatchedTypesOp {
+            op: Opcode::EQ,
+            expected: LiteralType::I32,
+			found: LiteralType::Bool
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+
+		let input = parse(
+            "fn main() {
+				let a: bool = false != 1;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::MismatchedTypesOp {
+            op: Opcode::NEQ,
+            expected: LiteralType::Bool,
+			found: LiteralType::I32
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+    }
+
+    #[test]
+    fn let_i32() {
+        let input = parse(
+            "fn main() {
+				let a: i32 = 1 + 2;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        assert!(type_check(input).is_ok());
+    }
+
+	#[test]
+    fn let_bool() {
+        let input = parse(
+            "fn main() {
+				let a: bool = true || false;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        assert!(type_check(input).is_ok());
+    }
+
+    #[test]
+    fn mm_let_i32() {
+        let input = parse(
+            "fn main() {
+				let a: i32 = 1 > 5;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::MismatchedTypesVar {
+            var: String::from("a"),
+            expected: LiteralType::I32,
+			found: LiteralType::Bool
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+    }
+
+    #[test]
+    fn mm_let_bool() {
+        let input = parse(
+            "fn main() {
+				let a: bool = 1 + 5;	
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::MismatchedTypesVar {
+            var: String::from("a"),
+            expected: LiteralType::Bool,
+			found: LiteralType::I32
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
     }
 }

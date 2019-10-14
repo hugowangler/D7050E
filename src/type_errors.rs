@@ -2,15 +2,27 @@ use std::fmt;
 
 use crate::{operators::Opcode, types::LiteralType};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeErrors {
     pub errors: Vec<ErrorKind>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ErrorKind {
-    OpWrongType { op: Opcode, typ: LiteralType },
-    MismatchedTypes{var: String, expected: LiteralType, found: LiteralType}
+    OpWrongType {
+        op: Opcode,
+        typ: LiteralType,
+    },
+    MismatchedTypesVar {
+        var: String,
+        expected: LiteralType,
+        found: LiteralType,
+    },
+	MismatchedTypesOp {
+		op: Opcode,
+		expected: LiteralType,
+		found: LiteralType,
+	}
 }
 
 impl fmt::Display for ErrorKind {
@@ -25,26 +37,41 @@ impl fmt::Display for ErrorKind {
                 ),
                 Opcode::AND | Opcode::OR => write!(
                     f,
-                    "Logical operation '{}' cannot be applied to '{}'",
+                    "Logical operation '{}' cannot be applied to type '{}'",
                     op.to_string(),
                     typ.to_string()
                 ),
                 Opcode::EQ | Opcode::NEQ | Opcode::GT | Opcode::LT | Opcode::LEQ | Opcode::GEQ => {
                     write!(
                         f,
-                        "Relational operation '{}' cannot be applied to '{}'",
+                        "Relational operation '{}' cannot be applied to type '{}'",
                         op.to_string(),
                         typ.to_string()
                     )
                 }
             },
-            ErrorKind::MismatchedTypes{var, expected, found} => write!(
+            ErrorKind::MismatchedTypesVar {
+                var,
+                expected,
+                found,
+            } => write!(
                 f,
                 "Mismatched type for variable '{}': expected {}, found {}",
                 var,
                 expected.to_string(),
                 found.to_string()
-            )
+            ),
+			ErrorKind::MismatchedTypesOp {
+                op,
+                expected,
+                found,
+            } => write!(
+                f,
+                "Mismatched type for operation '{}': expected {}, found {}",
+                op.to_string(),
+                expected.to_string(),
+                found.to_string()
+            ),
         }
     }
 }

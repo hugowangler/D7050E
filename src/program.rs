@@ -19,13 +19,15 @@ pub fn run(path: &Path) -> Option<Value> {
 
     match parse(input) {
         Ok(parsed_prog) => {
-            print!("parsed_prog = {:#?}", &parsed_prog);
+            println!("parsed_prog = {:#?}", &parsed_prog);
             // interp(parsed_prog)
             match type_check(parsed_prog.clone()) {
                 Ok(_) => interp(parsed_prog),
                 Err(e) => {
+                    // let mut err_print: String = String::new();
                     for error in e.errors.iter() {
-                        println!("Error: {}", error);
+                        // err_print.push_str(format!("Error: {}", error).as_str());
+                        eprintln!("Error: {}", error);
                     }
                     None
                 }
