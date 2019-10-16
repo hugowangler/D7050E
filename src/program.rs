@@ -27,8 +27,9 @@ pub fn run(path: &Path) -> Option<Value> {
                     // let mut err_print: String = String::new();
                     for error in e.errors.iter() {
                         // err_print.push_str(format!("Error: {}", error).as_str());
-                        eprintln!("Error: {}", error);
+                        eprintln!("Error: {} \n", error);
                     }
+                    eprintln!("\nCould not compile {:?}", display);
                     None
                 }
             }

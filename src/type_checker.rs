@@ -11,6 +11,27 @@ use crate::{
     value::Value,
 };
 
+macro_rules! check_next {
+    ($next:tt) => {
+        match $next {
+            Some(next) => does_return(next),
+            None => false,
+        }
+    };
+}
+
+macro_rules! get_type {
+    ($res:tt) => {
+        match $res {
+            Ok(typ) => Some(typ),
+            Err(typ) => match typ {
+                Some(typ) => Some(typ),
+                None => None,
+            },
+        }
+    };
+}
+
 type Funcs = HashMap<String, Func>; // Functions return types
 
 #[allow(unused_must_use)]
@@ -21,7 +42,7 @@ pub fn type_check(mut funcs_ast: Vec<Box<Node>>) -> Result<(), TypeErrors> {
 
     // Declare all of the functions
     for func in funcs_ast.drain(..) {
-        func_dec(func, &mut funcs);
+        func_dec(func, &mut funcs, &mut type_errors);
     }
 
     // Type check the function bodies
@@ -43,7 +64,7 @@ pub fn type_check(mut funcs_ast: Vec<Box<Node>>) -> Result<(), TypeErrors> {
     Ok(())
 }
 
-fn func_dec(func: Box<Node>, funcs: &mut Funcs) {
+fn func_dec(func: Box<Node>, funcs: &mut Funcs, err: &mut TypeErrors) {
     match *func {
         Node::Func {
             name,
@@ -52,9 +73,58 @@ fn func_dec(func: Box<Node>, funcs: &mut Funcs) {
             body,
         } => {
             let func = Func::new(name.to_string(), params.clone(), r_type, body.clone());
-            funcs.insert(name, func);
+            funcs.insert(name.clone(), func);
+
+            if let Some(typ) = r_type {
+                if !does_return(body) {
+                    err.insert_err(ErrorKind::FnMissingReturn {
+                        name: name.to_string(),
+                        r_type: typ,
+                    })
+                }
+            }
         }
         _ => unreachable!(),
+    }
+}
+
+/// Checks if the body of a function that returns has a tail expression
+fn does_return(body: Box<Node>) -> bool {
+    match *body {
+        Node::Return(_) => true,
+        Node::VarValue {
+            var: _,
+            expr: _,
+            next,
+        } => check_next!(next),
+        Node::Let {
+            var: _,
+            expr: _,
+            next,
+        } => check_next!(next),
+        Node::Print { expr: _, next } => check_next!(next),
+        Node::If {
+            cond: _,
+            statement: _,
+            next,
+        } => check_next!(next),
+        Node::IfElse {
+            cond: _,
+            if_statement: _,
+            else_statement: _,
+            next,
+        } => check_next!(next),
+        Node::While {
+            cond: _,
+            statement: _,
+            next,
+        } => check_next!(next),
+        Node::FuncCall {
+            name: _,
+            args: _,
+            next,
+        } => check_next!(next),
+        _ => false,
     }
 }
 
@@ -64,6 +134,7 @@ fn func_dec(func: Box<Node>, funcs: &mut Funcs) {
 /// Ok(LiteralType): The type determined
 /// Err(Option<LiteralType>): If possible, the type that would have resulted if the
 /// 	sub expression was correctly typed, otherwise None
+#[allow(unused_must_use)]
 fn visit(
     node: Box<Node>,
     context: &mut Context,
@@ -104,42 +175,111 @@ fn visit(
         Node::FuncCall { name, args, next } => {
             func_call(&name, args, context, funcs, curr_func, err, next)
         }
-        Node::Return(expr) => ret(
+        Node::Return(expr) => check_return(
             visit(expr, context, funcs, curr_func, err),
             funcs,
             curr_func,
             err,
         ),
+        Node::If {
+            cond,
+            statement,
+            next,
+        } => {
+            // Type check the statement and check that the condition is a boolean
+            context.push(Scope::new());
+            visit(statement, context, funcs, curr_func, err);
+            context.pop();
+            check_cond(
+                visit(cond, context, funcs, curr_func, err),
+                context,
+                funcs,
+                curr_func,
+                err,
+                next,
+            )
+        }
+        Node::While {
+            cond,
+            statement,
+            next,
+        } => {
+            context.push(Scope::new());
+            visit(statement, context, funcs, curr_func, err);
+            context.pop();
+            check_cond(
+                visit(cond, context, funcs, curr_func, err),
+                context,
+                funcs,
+                curr_func,
+                err,
+                next,
+            )
+        }
+        Node::IfElse {
+            cond,
+            if_statement,
+            else_statement,
+            next,
+        } => {
+            context.push(Scope::new());
+            visit(if_statement, context, funcs, curr_func, err);
+            context.pop();
+            context.push(Scope::new());
+            visit(else_statement, context, funcs, curr_func, err);
+            context.pop();
+            check_cond(visit(cond, context, funcs, curr_func, err), context, funcs, curr_func, err, next)
+        }
         _ => unimplemented!(),
     }
 }
 
-fn ret(
+fn check_cond(
+    cond: Result<LiteralType, Option<LiteralType>>,
+    context: &mut Context,
+    funcs: &Funcs,
+    curr_func: &str,
+    err: &mut TypeErrors,
+    next: Option<Box<Node>>,
+) -> Result<LiteralType, Option<LiteralType>> {
+    let cond = get_type!(cond);
+
+    if let Some(cond_typ) = cond {
+        if cond_typ != LiteralType::Bool {
+            err.insert_err(ErrorKind::Cond { found: cond_typ });
+        }
+    }
+
+    match next {
+        Some(next) => visit(next, context, funcs, curr_func, err),
+        None => Err(None),
+    }
+}
+
+fn check_return(
     val: Result<LiteralType, Option<LiteralType>>,
     funcs: &Funcs,
     curr_func: &str,
     err: &mut TypeErrors,
 ) -> Result<LiteralType, Option<LiteralType>> {
-	let fn_r_type = match funcs.get(curr_func) {
-		Some(func) => func.get_r_type(),
-		_ => unreachable!()
-	};
+    let fn_r_type = match funcs.get(curr_func) {
+        Some(func) => func.get_r_type(),
+        _ => unreachable!(),
+    };
 
-	let val_res = match val {
-		Ok(typ) => Some(typ),
-		Err(typ) => match typ {
-			Some(typ) => Some(typ),
-			None => None
-		}
-	};
+    let val = get_type!(val);
 
-	if let Some(val_type) = val_res {
-		if fn_r_type != val_type {
-			err.insert_err(ErrorKind::FnReturnMismatch{name: curr_func.to_string(), expected: fn_r_type, found: val_type});
-			return Err(Some(fn_r_type))
-		}
-	}
-	Ok(fn_r_type)
+    if let Some(val_type) = val {
+        if fn_r_type != val_type {
+            err.insert_err(ErrorKind::FnReturnMismatch {
+                name: curr_func.to_string(),
+                expected: fn_r_type,
+                found: val_type,
+            });
+            return Err(Some(fn_r_type));
+        }
+    }
+    Ok(fn_r_type)
 }
 
 fn func_call(
@@ -207,13 +347,7 @@ fn var_dec(
     err: &mut TypeErrors,
     next: Option<Box<Node>>,
 ) -> Result<LiteralType, Option<LiteralType>> {
-    let val_res = match val {
-        Ok(typ) => Some(typ),
-        Err(typ) => match typ {
-            Some(typ) => Some(typ),
-            None => None,
-        },
-    };
+    let val = get_type!(val);
 
     let (name, var_type, mutable) = match *var {
         Node::VarBinding(var, var_type, mutable) => match *var {
@@ -228,7 +362,7 @@ fn var_dec(
 
     // Handle mismatched types
     let mut ret = Ok(var_type);
-    if let Some(val_type) = val_res {
+    if let Some(val_type) = val {
         if val_type != var_type {
             err.insert_err(ErrorKind::MismatchedTypesVar {
                 var: name,
@@ -272,13 +406,7 @@ fn var_update(
     next: Option<Box<Node>>,
     err: &mut TypeErrors,
 ) -> Result<LiteralType, Option<LiteralType>> {
-    let val_res = match val {
-        Ok(typ) => Some(typ),
-        Err(typ) => match typ {
-            Some(typ) => Some(typ),
-            None => None,
-        },
-    };
+    let val = get_type!(val);
 
     // Get variable name and type, if not defined generate error and go to next
     let (var_name, var_type, var_mut) = match *var {
@@ -299,7 +427,7 @@ fn var_update(
 
     // If the new value of the variable has a type (passed type check),
     // check if the variable has the same type as the new value
-    if let Some(val_type) = val_res {
+    if let Some(val_type) = val {
         if var_type != val_type {
             err.insert_err(ErrorKind::MismatchedTypesVar {
                 var: var_name,
@@ -768,6 +896,137 @@ mod tests {
             param: String::from("b"),
             expected: LiteralType::I32,
             found: LiteralType::Bool,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+    }
+
+    #[test]
+    fn fn_return() {
+        let input = parse(
+            "fn main() {
+				test();
+			}
+			
+			fn test() -> i32 {
+                return true;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::FnReturnMismatch {
+            name: String::from("test"),
+            expected: LiteralType::I32,
+            found: LiteralType::Bool,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+
+        let input = parse(
+            "fn main() {
+				test();
+			}
+			
+			fn test() -> i32 {
+                if (true) {
+                    return 1;
+                }
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::FnMissingReturn {
+            name: String::from("test"),
+            r_type: LiteralType::I32,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+
+        let input = parse(
+            "fn main() {
+				test();
+			}
+			
+			fn test() -> i32 {
+                if (true) {
+                    return 0;
+                }
+                return 1;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        assert!(type_check(input).is_ok());
+    }
+
+    #[test]
+    fn cond_type() {
+        let input = parse(
+            "fn main() {
+				test();
+			}
+			
+			fn test() -> i32 {
+                if(123) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+                return 1;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::Cond {
+            found: LiteralType::I32,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+
+        let input = parse(
+            "fn main() {
+				test();
+			}
+			
+			fn test() -> i32 {
+                while(123) {
+                    return 0;
+                }
+                return 1;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::Cond {
+            found: LiteralType::I32,
+        });
+        assert_eq!(type_check(input).unwrap_err(), errors);
+
+        let input = parse(
+            "fn main() {
+				test();
+			}
+			
+			fn test() -> i32 {
+                if(true) {
+                    return 0;
+                } else if (123) {
+                    return 1;
+                }
+                return 1;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut errors = TypeErrors::new();
+        errors.insert_err(ErrorKind::Cond {
+            found: LiteralType::I32,
         });
         assert_eq!(type_check(input).unwrap_err(), errors);
     }

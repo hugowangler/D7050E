@@ -43,11 +43,18 @@ pub enum ErrorKind {
         expected: LiteralType,
         found: LiteralType,
     },
-	FnReturnMismatch {
-		name: String,
-		expected: LiteralType,
-		found: LiteralType,
-	}
+    FnReturnMismatch {
+        name: String,
+        expected: LiteralType,
+        found: LiteralType,
+    },
+    FnMissingReturn {
+        name: String,
+        r_type: LiteralType,
+    },
+    Cond {
+        found: LiteralType,
+    },
 }
 
 impl fmt::Display for ErrorKind {
@@ -81,7 +88,8 @@ impl fmt::Display for ErrorKind {
                 found,
             } => write!(
                 f,
-                "Mismatched type for variable '{}': expected {}, found {}",
+                "Mismatched type for variable '{}'
+                Note: expected {}, found {}",
                 var,
                 expected.to_string(),
                 found.to_string()
@@ -92,7 +100,8 @@ impl fmt::Display for ErrorKind {
                 found,
             } => write!(
                 f,
-                "Mismatched type for operation '{}': expected {}, found {}",
+                "Mismatched type for operation '{}' 
+                Note: expected {}, found {}",
                 op.to_string(),
                 expected.to_string(),
                 found.to_string()
@@ -121,24 +130,39 @@ impl fmt::Display for ErrorKind {
                 expected,
                 found,
             } => write!(
+                f,
+                "Mismatched type of parameter '{}' when calling function '{}'
+                Note: expected '{}' but found '{}'",
+                param,
+                name,
+                expected.to_string(),
+                found.to_string(),
+            ),
+            ErrorKind::FnReturnMismatch {
+                name,
+                expected,
+                found,
+            } => write!(
+                f,
+                "Mismatched type of return statement in function '{}'
+                Note: expected '{}' because of return type but found '{}'",
+                name,
+                expected.to_string(),
+                found.to_string(),
+            ),
+            ErrorKind::FnMissingReturn { name, r_type } => write!(
 				f,
-				"Mismatched type of parameter '{}' when calling function '{}': expected '{}' but found '{}'",
-				param,
+				"Function '{}' implicitly returns '()' as its body has no tail or 'return' expression
+                Note: expected type '{}' but found '()'",
 				name,
-				expected.to_string(),
-				found.to_string(),
+				r_type.to_string(),
 			),
-			ErrorKind::FnReturnMismatch {
-				name,
-				expected,
-				found,
-			} => write!(
-				f,
-				"Mismatched type for function '{}': expected '{}' because of return type but found '{}'",
-				name,
-				expected.to_string(),
-				found.to_string(),
-			),
+            ErrorKind::Cond { found } => write!(
+                f,
+                "Mismatched type in condition
+                Note: expected type 'bool' but found type '{}'",
+                found.to_string(),
+            ),
         }
     }
 }
