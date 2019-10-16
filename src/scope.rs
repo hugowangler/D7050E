@@ -33,4 +33,20 @@ impl Scope {
         }
         scope
     }
+
+    pub fn init_param_types(params: &Vec<Box<Node>>) -> Scope {
+        let mut scope = Scope::new();
+        for param in params.iter() {
+            match &**param {
+                Node::FuncParam(var, typ, mutable) => match &**var {
+                    Node::Var(name) => scope
+                        .vars
+                        .insert(name.to_string(), Variable::new(Value::None, *mutable, *typ)),
+                    _ => unreachable!(),
+                },
+                _ => unreachable!(),
+            };
+        }
+        scope
+    }
 }

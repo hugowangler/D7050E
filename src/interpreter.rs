@@ -213,7 +213,11 @@ fn eval_expr(left: Value, op: Opcode, right: Value) -> Value {
 fn eval_num_expr(left: Value, op: Opcode, right: Value) -> Value {
     let (l, r) = match (left.clone(), right.clone()) {
         (Value::Number(l_num), Value::Number(r_num)) => (l_num, r_num),
-        _ => panic!("Left or right part of number expression not a number, found: left = {:#?} and right = {:#?}", left, right),
+        _ => panic!(
+            "Left or right part of number expression not a number, 
+			found: left = {:#?} and right = {:#?}",
+            left, right
+        ),
     };
 
     match op {
@@ -350,7 +354,8 @@ fn eval_while_statement(
         Value::Bool(b) => {
             if b {
                 let do_stmnt = visit(statement.clone(), context, funcs);
-                // Return the result of the while statement if it returns anything, otherwise continue the loop
+                // Return the result of the while statement if it returns anything,
+                // otherwise continue the loop
                 match do_stmnt {
                     Value::None => {
                         context.pop();

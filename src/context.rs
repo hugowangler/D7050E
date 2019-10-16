@@ -34,7 +34,7 @@ impl Context {
         None // Variable was not found in any scope
     }
 
-    fn get_var(&mut self, name: &str) -> Option<&Variable> {
+    pub fn get_var(&mut self, name: &str) -> Option<&Variable> {
         for scope in self.scopes.iter().rev() {
             match scope.vars.get(name) {
                 Some(var) => return Some(var),
@@ -47,13 +47,6 @@ impl Context {
     pub fn get_var_value(&mut self, name: &str) -> Option<Value> {
         match self.get_var(name) {
             Some(var) => Some(var.get_value()),
-            None => None,
-        }
-    }
-
-    pub fn get_var_type(&mut self, name: &str) -> Option<LiteralType> {
-        match self.get_var(name) {
-            Some(var) => Some(var.get_type()),
             None => None,
         }
     }

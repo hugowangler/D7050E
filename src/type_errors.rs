@@ -18,8 +18,33 @@ pub enum ErrorKind {
         expected: LiteralType,
         found: LiteralType,
     },
-	MismatchedTypesOp {
-		op: Opcode,
+    MismatchedTypesOp {
+        op: Opcode,
+        expected: LiteralType,
+        found: LiteralType,
+    },
+    VarNotInScope {
+        var: String,
+    },
+    VarImmut {
+        var: String,
+    },
+    FnNotInScope {
+        name: String,
+    },
+    FnNumParamMismatch {
+        name: String,
+        takes: usize,
+        supplied: usize,
+    },
+    FnParamTypeMismatch {
+        name: String,
+        param: String,
+        expected: LiteralType,
+        found: LiteralType,
+    },
+	FnReturnMismatch {
+		name: String,
 		expected: LiteralType,
 		found: LiteralType,
 	}
@@ -61,7 +86,7 @@ impl fmt::Display for ErrorKind {
                 expected.to_string(),
                 found.to_string()
             ),
-			ErrorKind::MismatchedTypesOp {
+            ErrorKind::MismatchedTypesOp {
                 op,
                 expected,
                 found,
@@ -72,6 +97,48 @@ impl fmt::Display for ErrorKind {
                 expected.to_string(),
                 found.to_string()
             ),
+            ErrorKind::VarNotInScope { var } => {
+                write!(f, "Cannot find value '{}' in this scope", var.to_string())
+            }
+            ErrorKind::VarImmut { var } => {
+                write!(f, "Cannot assign twice to immutable variable '{}'", var)
+            }
+            ErrorKind::FnNotInScope { name } => {
+                write!(f, "Cannot find function '{}' in scope", name.to_string())
+            }
+            ErrorKind::FnNumParamMismatch {
+                name,
+                takes,
+                supplied,
+            } => write!(
+                f,
+                "Function '{}' takes '{}' parameters but '{}' was supplied",
+                name, takes, supplied
+            ),
+            ErrorKind::FnParamTypeMismatch {
+                name,
+                param,
+                expected,
+                found,
+            } => write!(
+				f,
+				"Mismatched type of parameter '{}' when calling function '{}': expected '{}' but found '{}'",
+				param,
+				name,
+				expected.to_string(),
+				found.to_string(),
+			),
+			ErrorKind::FnReturnMismatch {
+				name,
+				expected,
+				found,
+			} => write!(
+				f,
+				"Mismatched type for function '{}': expected '{}' because of return type but found '{}'",
+				name,
+				expected.to_string(),
+				found.to_string(),
+			),
         }
     }
 }
