@@ -32,7 +32,7 @@ macro_rules! get_type {
     };
 }
 
-type Funcs = HashMap<String, Func>; // Functions return types
+type Funcs = HashMap<String, Func>;
 
 #[allow(unused_must_use)]
 pub fn type_check(mut funcs_ast: Vec<Box<Node>>) -> Result<(), TypeErrors> {
@@ -47,7 +47,7 @@ pub fn type_check(mut funcs_ast: Vec<Box<Node>>) -> Result<(), TypeErrors> {
 
     // Type check the function bodies
     for (_, func) in funcs.clone().iter() {
-        context.push(Scope::init_param_types(&func.params)); // Push scope containing the params type
+        context.push(Scope::init_param_types(&func.params)); // Push scope containing params and their types
         visit(
             func.body.clone(),
             &mut context,
