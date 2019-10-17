@@ -29,6 +29,27 @@ impl Func {
         }
     }
 
+    pub fn get_r_type(&self) -> LiteralType {
+        match self.r_type {
+            Some(typ) => typ,
+            None => LiteralType::Void,
+        }
+    }
+
+    pub fn get_param_types(&self) -> Vec<(String, LiteralType)> {
+        let mut param_types = vec![];
+        for param in self.params.iter() {
+            match *param.clone() {
+                Node::FuncParam(var, typ, _) => match *var {
+                    Node::Var(name) => param_types.push((name, typ)),
+                    _ => unreachable!(),
+                },
+                _ => unreachable!(),
+            }
+        }
+        param_types
+    }
+
     pub fn call(
         &mut self,
         args: Vec<Box<Node>>,

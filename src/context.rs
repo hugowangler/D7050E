@@ -1,4 +1,4 @@
-use crate::{scope::Scope, value::Value, variable::Variable};
+use crate::{scope::Scope, types::LiteralType, value::Value, variable::Variable};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Context {
@@ -10,8 +10,8 @@ impl Context {
         Context { scopes: vec![] }
     }
 
-    pub fn insert_var(&mut self, name: String, mutable: bool, value: Value) {
-        let new_var = Variable::new(value, mutable);
+    pub fn insert_var(&mut self, name: String, mutable: bool, typ: LiteralType, value: Value) {
+        let new_var = Variable::new(value, mutable, typ);
         match self.scopes.iter_mut().last() {
             Some(scope) => scope.vars.insert(name, new_var),
             None => panic!("insert_var: No scope in context"),
@@ -34,14 +34,21 @@ impl Context {
         None // Variable was not found in any scope
     }
 
-    pub fn get_var(&mut self, name: &str) -> Option<Value> {
+    pub fn get_var(&mut self, name: &str) -> Option<&Variable> {
         for scope in self.scopes.iter().rev() {
             match scope.vars.get(name) {
-                Some(var) => return Some(var.get_value()),
+                Some(var) => return Some(var),
                 None => (),
             };
         }
         None
+    }
+
+    pub fn get_var_value(&mut self, name: &str) -> Option<Value> {
+        match self.get_var(name) {
+            Some(var) => Some(var.get_value()),
+            None => None,
+        }
     }
 
     pub fn push(&mut self, scope: Scope) {

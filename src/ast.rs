@@ -2,15 +2,17 @@ use crate::{operators::Opcode, types::LiteralType};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
-    Number(i32),     //
-    Bool(bool),      //
-    _String(String), //
+    Number(i32),
+    Bool(bool),
+    _String(String),
 
-    Var(String),                              //
-    VarBinding(Box<Node>, LiteralType, bool), //
+    Var(String),
+    VarBinding(Box<Node>, LiteralType, bool),
 
-    Expr(Box<Node>, Opcode, Box<Node>), //
+    Expr(Box<Node>, Opcode, Box<Node>),
     UnaryOp(Opcode, Box<Node>),
+
+    FuncParam(Box<Node>, LiteralType, bool),
 
     // Keywords
     // Keywords contain an optional field for the "next" node in the ast which contains other keywords
@@ -18,51 +20,50 @@ pub enum Node {
         var: Box<Node>,
         expr: Box<Node>,
         next: Option<Box<Node>>,
-    }, //
+    },
     Let {
         var: Box<Node>,
         expr: Box<Node>,
         next: Option<Box<Node>>,
-    }, //
+    },
     Print {
         expr: Box<Node>,
         next: Option<Box<Node>>,
-    }, //
+    },
     If {
         cond: Box<Node>,
         statement: Box<Node>,
         next: Option<Box<Node>>,
-    }, //
+    },
     IfElse {
         cond: Box<Node>,
         if_statement: Box<Node>,
         else_statement: Box<Node>,
         next: Option<Box<Node>>,
-    }, //
+    },
     While {
         cond: Box<Node>,
         statement: Box<Node>,
         next: Option<Box<Node>>,
-    }, //
+    },
 
     Func {
         name: String,
         params: Vec<Box<Node>>,
         r_type: Option<LiteralType>,
         body: Box<Node>,
-    }, //
-    FuncParam(Box<Node>, LiteralType, bool), //
+    },
     FuncCall {
         name: String,
         args: Vec<Box<Node>>,
         next: Option<Box<Node>>,
-    }, //
+    },
 
-    // Loop modifiers
+    // NOT IMPLEMENTED Loop modifiers
     Break,
     Continue,
 
-    Return(Box<Node>), //
+    Return(Box<Node>),
 }
 
 impl Node {

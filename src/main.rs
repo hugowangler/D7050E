@@ -9,12 +9,15 @@ mod operators;
 mod parse;
 mod program;
 mod scope;
+mod type_checker;
+mod type_errors;
 mod types;
 mod value;
 mod variable;
 
 use std::path::Path;
 
+#[allow(unused)]
 fn main() {
-    println!("{:?}", program::run(Path::new("input.rs")));
+    program::run(Path::new("input.rs"));
 }
