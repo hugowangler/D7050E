@@ -17,7 +17,7 @@ mod variable;
 
 use std::path::Path;
 
+#[allow(unused)]
 fn main() {
-    println!("{:?}", program::run(Path::new("input.rs")));
-    // program::run(Path::new("input.rs"));
+    program::run(Path::new("input.rs"));
 }
