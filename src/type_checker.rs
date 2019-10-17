@@ -228,8 +228,20 @@ fn visit(
             context.push(Scope::new());
             visit(else_statement, context, funcs, curr_func, err);
             context.pop();
-            check_cond(visit(cond, context, funcs, curr_func, err), context, funcs, curr_func, err, next)
+            check_cond(
+                visit(cond, context, funcs, curr_func, err),
+                context,
+                funcs,
+                curr_func,
+                err,
+                next,
+            )
         }
+        // Print node used for debugging
+        Node::Print { expr: _, next } => match next {
+            Some(next) => visit(next, context, funcs, curr_func, err),
+            None => Err(None),
+        },
         _ => unimplemented!(),
     }
 }

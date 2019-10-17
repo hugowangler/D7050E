@@ -18,6 +18,6 @@ mod variable;
 use std::path::Path;
 
 fn main() {
-    // println!("{:?}", program::run(Path::new("input.rs")));
-    program::run(Path::new("input.rs"));
+    println!("{:?}", program::run(Path::new("input.rs")));
+    // program::run(Path::new("input.rs"));
 }

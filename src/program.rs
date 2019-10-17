@@ -19,7 +19,7 @@ pub fn run(path: &Path) -> Option<Value> {
 
     match parse(input) {
         Ok(parsed_prog) => {
-            println!("parsed_prog = {:#?}", &parsed_prog);
+            // println!("parsed_prog = {:#?}", &parsed_prog);
             // interp(parsed_prog)
             match type_check(parsed_prog.clone()) {
                 Ok(_) => interp(parsed_prog),
