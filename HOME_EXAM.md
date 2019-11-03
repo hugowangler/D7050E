@@ -1,9 +1,9 @@
 # Home Exam D7050E
-My answers to the questions of the home exam.
+Answers to the questions of the home exam.
 
 ## 1. Syntax
-- EBNF grammar of my language:
-```ebnf
+- EBNF grammar of the language
+```EBNF
 Program = {FuncDef} ;
 
 Statement = 
@@ -16,7 +16,8 @@ Keyword =
 	| "while", WhileStatement 
 	| AssignValue, ";"
 	| Return, ";"
-	| FuncCall, ";" ;
+	| FuncCall, ";"
+	| Print, ";" ;
 
 FuncDef = "fn", Identifier, "(", FuncParams, ")", ["->", LitType], "{", Statement, "}" ;
 
@@ -26,24 +27,27 @@ FuncArgs = VectorizeComma<Expr> ;
 
 FuncParams = VectorizeComma<Param> ;
 
-(* Creates vector of comma-seperated list of type T*)
+(* Creates vector of comma-seperated list of type T *)
 VectorizeComma<T> = {T, ","}, [T] ;
 
 Param = ["mut"], Var, ":", LitType ;
 
 Return = "return", Expr ;
 
-WhileStatement = "(", Expr, ")", "{" Statement "}" ;
+(* Used for debugging *)
+Print = "print(", Expr, ")" ;
+
+WhileStatement = "(", Expr, ")", "{", Statement, "}" ;
 
 IfStatement =
 	"(", Expr, ")", "{", Statement, "}"	
 	| "(", Expr, ")", "{", Statement, "} else {", Statement, "}"
 	| "(", Expr, ")", "{", Statement, "} else if", IfStatement ;
 
-(*Updating a variable*)
+(* Updating a variable *)
 AssignValue = Var, "=", Expr ;
 
-(*Declaring a new variable*)
+(* Declaring a new variable *)
 Assign = AssignBinding, Expr ;
 
 AssignBinding = ["mut"], Var, ":", LitType, "=" ;
@@ -62,7 +66,8 @@ Term =
 	Num 
 	| UnaryOp, Num 
 	| Var 
-	| Bool 
+	| Bool
+	| _String
 	| FuncCall 
 	| "(", Expr, ")" ;
 
@@ -78,6 +83,9 @@ UnaryOp = "-" ;
 
 LitType = "bool" | "i32" ;
 
+(* Used to help with printing when debugging *)
+_String = """, Identifier, """ ;
+
 Bool = "true" | "false" ;
 
 Var = Identifier ;
@@ -86,3 +94,20 @@ Identifier: = [a-zA-Z][a-zA-Z0-9_]* ;
 
 Num = [0-9]+ ;
 ```	
+- Example code that showcases all of the rules of the EBNF
+
+```rust
+fn fibonacci(n: i32) -> i32 {
+	if (n == 0) {
+		return 0;
+	} else if (n == 1) {
+		return 1;
+	} else {
+		return fibonacci(n - 2) + fibonacci(n - 1);
+	}
+}
+
+fn main() {
+	return fibonacci(20);
+}
+```
