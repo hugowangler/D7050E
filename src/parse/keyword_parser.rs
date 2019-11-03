@@ -18,27 +18,27 @@ mod tests {
 
     #[test]
     fn test_let_number() {
-        assert!(parse("let a:i32 = 2").is_ok());
+        assert!(parse("let a:i32 = 2;").is_ok());
     }
 
     #[test]
     fn test_let_expr() {
-        assert!(parse("let b : i32 = 2 + a").is_ok());
+        assert!(parse("let b : i32 = 2 + a;").is_ok());
     }
 
     #[test]
     fn test_let_rel() {
-        assert!(parse("let b : bool = a < b").is_ok());
-        assert!(parse("let b : bool = a == b").is_ok());
-        assert!(parse("let b : bool = a != b").is_ok());
-        assert!(parse("let b : bool = a > b").is_ok());
-        assert!(parse("let b : bool = a >= b").is_ok());
-        assert!(parse("let b : bool = a <= b").is_ok());
+        assert!(parse("let b : bool = a < b;").is_ok());
+        assert!(parse("let b : bool = a == b;").is_ok());
+        assert!(parse("let b : bool = a != b;").is_ok());
+        assert!(parse("let b : bool = a > b;").is_ok());
+        assert!(parse("let b : bool = a >= b;").is_ok());
+        assert!(parse("let b : bool = a <= b;").is_ok());
     }
 
     #[test]
     fn test_let_log() {
-        assert!(parse("let b : bool = a && b").is_ok());
-        assert!(parse("let b : bool = a || b").is_ok());
+        assert!(parse("let b : bool = a && b;").is_ok());
+        assert!(parse("let b : bool = a || b;").is_ok());
     }
 }
