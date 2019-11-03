@@ -1,8 +1,8 @@
 # Home Exam D7050E
 My answers to the questions of the home exam.
 
-## Your syntax
-### EBNF
+## 1. Syntax
+- EBNF grammar of my language:
 ```ebnf
 Program = {FuncDef} ;
 
@@ -36,8 +36,8 @@ Return = "return", Expr ;
 WhileStatement = "(", Expr, ")", "{" Statement "}" ;
 
 IfStatement =
-	"(", Expr, ")", "{", Statement	
-	| "(", Expr, ")", "{", Statement, "} else {", Statement
+	"(", Expr, ")", "{", Statement, "}"	
+	| "(", Expr, ")", "{", Statement, "} else {", Statement, "}"
 	| "(", Expr, ")", "{", Statement, "} else if", IfStatement ;
 
 (*Updating a variable*)
