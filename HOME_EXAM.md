@@ -184,5 +184,20 @@ $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarr
 OR:\
 $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ || \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{OR} \ b2}$
 
-LT (<):
-$\frac{\lang n1, \sigma \rang \Downarrow \ n1 \; \lang n2, \sigma \rang \Downarrow \ n2}{\lang b1 \ || \ b2, \sigma \rang \ \Downarrow \ n1 \ \text{OR} \ n2}$
+Less than (<):\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ < \ e2, \sigma \rang \ \Downarrow \ b1 \ < \ b2}$
+
+Greaten than (>):\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ > \ e2, \sigma \rang \ \Downarrow \ b1 \ > \ b2}$
+
+Less than or equals (<=):\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ <= \ e2, \sigma \rang \ \Downarrow \ b1 \ <= \ b2}$
+
+Greater than or equals (>=):\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ >= \ e2, \sigma \rang \ \Downarrow \ b1 \ >= \ b2}$
+
+Equals (==):\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ == \ e2, \sigma \rang \ \Downarrow \ b1 \ == \ b2}$
+
+Not equals (!=):\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ b1 \ != \ b2}$
