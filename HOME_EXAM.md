@@ -154,3 +154,13 @@ fn prec_test() -> i32 {
 	return 2 * 10 - 3 + 2 * 5;
 }
 ```
+
+- Comparing the parser with the requirements
+
+The parser was implemented using the LALRPOP parser generator. By following the LALRPOP tutorial to learn the syntax and some of the functionality a expression parser was implemented. Thus I didn't implemented the expression parser myself but I built upon it and extended it to implement the rest of the parser for my language. 
+
+When it comes precedence of the expression parser the tutorial already had it implemented for numerical expressions. When I extended the parser to support logical and relational operations the precedence of those operations works if you don't mix logical and relation operations together. So for the most part in my language sub expressions have to be parantesized if they contain those operations.
+
+No error messages, except the already existing error messages from LALRPOP, have been implemented in the parser. And thus no error recovery is possible since the parser just forwards the LALRPOP error message and stops if an error occurs while parsing the program.
+
+## 2. Semantics
