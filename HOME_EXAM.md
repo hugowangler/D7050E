@@ -166,6 +166,23 @@ No error messages, except the already existing error messages from LALRPOP, have
 ## Your semantics
 - Give an as complete as possible Structural Operetional Semantics (SOS) for your language
 
-```math
-\frac{4}{5}
-```
+Addition:\
+$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 + e2, \sigma \rang \ \Downarrow \ n1 + n2}$
+
+Subtraction:\
+$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 - e2, \sigma \rang \ \Downarrow \ n1 - n2}$
+
+Multiplication:\
+$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 * e2, \sigma \rang \ \Downarrow \ n1 * n2}$
+
+Division:\
+$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 / e2, \sigma \rang \ \Downarrow \ n1 / n2}$
+
+AND:\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b1}{\lang e1 \ \&\& \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{AND} \ b2}$
+
+OR:\
+$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ || \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{OR} \ b2}$
+
+LT (<):
+$\frac{\lang n1, \sigma \rang \Downarrow \ n1 \; \lang n2, \sigma \rang \Downarrow \ n2}{\lang b1 \ || \ b2, \sigma \rang \ \Downarrow \ n1 \ \text{OR} \ n2}$
