@@ -1,8 +1,12 @@
-use std::{error::Error, fs::File, io::prelude::*, io::{self, Write}, path::Path};
-
-use crate::{
-    interpreter::interp, parse::program_parser::parse, type_checker::type_check
+use std::{
+    error::Error,
+    fs::File,
+    io::prelude::*,
+    io::{self, Write},
+    path::Path,
 };
+
+use crate::{interpreter::interp, parse::program_parser::parse, type_checker::type_check};
 
 pub fn run(path: &Path) -> io::Result<()> {
     let display = path.display();
@@ -22,16 +26,14 @@ pub fn run(path: &Path) -> io::Result<()> {
             // println!("parsed_prog = {:#?}", &parsed_prog);
             match type_check(parsed_prog.clone()) {
                 Ok(_) => match interp(parsed_prog) {
-					Some(res) => {
-						io::stdout().write_fmt(format_args!("{:?}\n", res))
-					}
-					None => Ok(())
-				},
+                    Some(res) => io::stdout().write_fmt(format_args!("{:?}\n", res)),
+                    None => Ok(()),
+                },
                 Err(e) => {
                     for error in e.errors.iter() {
-						io::stderr().write_fmt(format_args!("Error: {}\n", error))?
+                        io::stderr().write_fmt(format_args!("Error: {}\n", error))?
                     }
-					io::stderr().write_fmt(format_args!("Could not compile '{}'\n", display))
+                    io::stderr().write_fmt(format_args!("Could not compile '{}'\n", display))
                 }
             }
         }

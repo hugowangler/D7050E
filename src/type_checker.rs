@@ -146,7 +146,7 @@ fn visit(
         Node::Number(_) => Ok(LiteralType::I32),
         Node::Bool(_) => Ok(LiteralType::Bool),
         Node::_String(_) => Ok(LiteralType::_String),
-        Node::UnaryOp(_, _) => Ok(LiteralType::I32),
+        Node::UnaryOp(_, expr) => unary_op(visit(expr, context, funcs, curr_func, err), err),
         Node::Var(name) => var(&name, context, err),
         Node::VarValue { var, expr, next } => var_update(
             var,
@@ -563,6 +563,22 @@ fn rel_op(
         }
         _ => unreachable!(),
     }
+}
+
+fn unary_op(
+    expr: Result<LiteralType, Option<LiteralType>>,
+    err: &mut TypeErrors,
+) -> Result<LiteralType, Option<LiteralType>> {
+    let expr = get_type!(expr);
+
+    if let Some(expr_type) = expr {
+        if expr_type != LiteralType::I32 {
+            err.insert_err(ErrorKind::UnaryOpWrongType { typ: expr_type });
+        } else {
+            return Ok(LiteralType::I32);
+        }
+    }
+    return Err(Some(LiteralType::I32));
 }
 
 // --------------------------- TESTS ---------------------------

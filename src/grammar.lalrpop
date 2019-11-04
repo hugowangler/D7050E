@@ -196,6 +196,7 @@ ExprRelOp: Opcode = {
 Factor: Box<Node> = {
     Factor FactorOp Term => Box::new(Node::Expr(<>)),
 	Factor FactorLogOp Term => Box::new(Node::Expr(<>)),
+	UnaryOp Term => Box::new(Node::UnaryOp(<>)),
     Term
 };
 
@@ -215,7 +216,8 @@ UnaryOp: Opcode = {
 
 Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
-	<o:UnaryOp> <n:Num> => Box::new(Node::UnaryOp(o, Box::new(Node::Number(n)))),
+	// <o:UnaryOp> <n:Num> => Box::new(Node::UnaryOp(o, Box::new(Node::Number(n)))),
+	// <o:UnaryOp> <v:Var> => Box::new(Node::UnaryOp(o, v)),	
     Var,
     Bool,
     _String,

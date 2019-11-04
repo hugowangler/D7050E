@@ -13,6 +13,9 @@ pub enum ErrorKind {
         op: Opcode,
         typ: LiteralType,
     },
+    UnaryOpWrongType {
+        typ: LiteralType,
+    },
     MismatchedTypesVar {
         var: String,
         expected: LiteralType,
@@ -82,6 +85,11 @@ impl fmt::Display for ErrorKind {
                     )
                 }
             },
+            ErrorKind::UnaryOpWrongType { typ } => write!(
+                f,
+                "Unary operation '-' cannot be applied to type '{}'",
+                typ.to_string()
+            ),
             ErrorKind::MismatchedTypesVar {
                 var,
                 expected,

@@ -25,7 +25,7 @@ pub fn interp(mut funcs_ast: Vec<Box<Node>>) -> Option<Value> {
 pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value {
     match *node {
         Node::Number(num) => Value::Number(num),
-        Node::UnaryOp(op, num) => eval_unary(op, num),
+        Node::UnaryOp(op, value) => eval_unary(op, visit(value, context, funcs)),
         Node::Bool(b) => Value::Bool(b),
         Node::_String(text) => Value::String(text),
         Node::Var(name) => eval_var(&name, context),
@@ -187,10 +187,10 @@ fn eval_var(name: &str, context: &mut Context) -> Value {
     }
 }
 
-fn eval_unary(op: Opcode, num: Box<Node>) -> Value {
-    let n = match *num {
-        Node::Number(n) => n,
-        _ => unreachable!(),
+fn eval_unary(op: Opcode, val: Value) -> Value {
+    let n = match val {
+        Value::Number(n) => n,
+        _ => panic!("UnaryOp on value not number!"),
     };
 
     match op {
@@ -387,24 +387,24 @@ fn eval_while_statement(
 #[cfg(test)]
 mod tests {
     use super::*;
-	use std::{fs::File, io::prelude::*, path::Path, error::Error};
-	use crate::parse::program_parser::parse;
-	
-	fn parse_interp(path: &Path) -> Option<Value> {
-		let display = path.display();
-		let mut file = match File::open(&path) {
-			Ok(file) => file,
-			Err(e) => panic!("Could not open {}: {}", display, e.description()),
-		};
+    use crate::parse::program_parser::parse;
+    use std::{error::Error, fs::File, io::prelude::*, path::Path};
 
-		let mut input = String::new();
-		match file.read_to_string(&mut input) {
-			Ok(_) => (),
-			Err(e) => panic!("Could not read file: {:?}", e),
-		}
+    fn parse_interp(path: &Path) -> Option<Value> {
+        let display = path.display();
+        let mut file = match File::open(&path) {
+            Ok(file) => file,
+            Err(e) => panic!("Could not open {}: {}", display, e.description()),
+        };
 
-		interp(parse(input).unwrap())
-	}
+        let mut input = String::new();
+        match file.read_to_string(&mut input) {
+            Ok(_) => (),
+            Err(e) => panic!("Could not read file: {:?}", e),
+        }
+
+        interp(parse(input).unwrap())
+    }
 
     // Expression precedence
     #[test]

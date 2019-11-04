@@ -108,6 +108,49 @@ fn fibonacci(n: i32) -> i32 {
 }
 
 fn main() {
-	return fibonacci(20);
+	let fib_20: i32 = fibonacci(20);
+	if (fib_20 == 6765) {
+		print("fib_20=6765");
+	}
+
+	if (fib_20 > 7000) {
+		print("fib_20>7000");
+	} else {
+		print("fib_20<7000");
+	}
+
+	let mut and_res: bool = and_op(true, true);
+
+	while (and_res) {
+		and_res = false;
+	}
+	print("and_res_after_while_loop");
+	print(and_res);
+
+	let unary_res: i32 = unary_op(1);
+	if (unary_res == -1) {
+		print("unary_ok");
+	} else {
+		print("unary_failed");
+	}
+
+	let prec_test: i32 = prec_test();
+	if (prec_test == 27) {
+		print("prec_ok");
+	} else {
+		print("prec_failed");
+	}
+}
+
+fn and_op(a: bool, b: bool) -> bool {
+	return a && b;
+}
+
+fn unary_op(x: i32) -> i32 {
+	return -x;
+}
+
+fn prec_test() -> i32 {
+	return 2 * 10 - 3 + 2 * 5;
 }
 ```
