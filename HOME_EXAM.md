@@ -1,8 +1,8 @@
 # Home Exam D7050E
 Answers to the questions of the home exam.
 
-## 1. Syntax
-- EBNF grammar of the language
+## Your syntax
+- Give an as complete as possible EBNF grammar for your language
 ```EBNF
 Program = {FuncDef} ;
 
@@ -60,11 +60,11 @@ Expr =
 Factor = 
 	Factor, FactorOp, Term 
 	| Factor, FactorLogOp, Term 
+	| UnaryOp, Term
 	| Term ;
 
 Term = 
 	Num 
-	| UnaryOp, Num 
 	| Var 
 	| Bool
 	| _String
@@ -94,7 +94,7 @@ Identifier: = [a-zA-Z][a-zA-Z0-9_]* ;
 
 Num = [0-9]+ ;
 ```	
-- Example code that showcases all of the rules of the EBNF
+- Give an example that showcases all rules of your EBNF. The program should "do" something as used in the next excercise.
 
 ```rust
 fn fibonacci(n: i32) -> i32 {
@@ -155,12 +155,17 @@ fn prec_test() -> i32 {
 }
 ```
 
-- Comparing the parser with the requirements
+- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
-The parser was implemented using the LALRPOP parser generator. By following the LALRPOP tutorial to learn the syntax and some of the functionality a expression parser was implemented. Thus I didn't implemented the expression parser myself but I built upon it and extended it to implement the rest of the parser for my language. 
+The parser was implemented using the [LALRPOP](https://github.com/lalrpop/lalrpop) parser generator. By following the LALRPOP tutorial to learn the syntax and some of the functionality a expression parser was implemented. Thus I didn't implemented the expression parser myself but I built upon it and extended it to implement the rest of the parser for my language. 
 
 When it comes precedence of the expression parser the tutorial already had it implemented for numerical expressions. When I extended the parser to support logical and relational operations the precedence of those operations works if you don't mix logical and relation operations together. So for the most part in my language sub expressions have to be parantesized if they contain those operations.
 
 No error messages, except the already existing error messages from LALRPOP, have been implemented in the parser. And thus no error recovery is possible since the parser just forwards the LALRPOP error message and stops if an error occurs while parsing the program.
 
-## 2. Semantics
+## Your semantics
+- Give an as complete as possible Structural Operetional Semantics (SOS) for your language
+
+```math
+\frac{4}{5}
+```
