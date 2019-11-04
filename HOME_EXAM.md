@@ -165,8 +165,10 @@ No error messages, except the already existing error messages from LALRPOP, have
 
 ## Your semantics
 - Give an as complete as possible Structural Operetional Semantics (SOS) for your language
-
+ 
 ### Operators
+Given a expression $e$ in the state $\sigma$  that evaluates to a value $n$ the following can be said for the operators in the language
+
 Addition:\
 $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 + e2, \sigma \rang \ \Downarrow \ n1 + n2}$
 
@@ -179,6 +181,9 @@ $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Dow
 Division:\
 $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 / e2, \sigma \rang \ \Downarrow \ n1 / n2}$
 
+Unary:\
+$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1}{\lang -e1, \sigma \rang \ \Downarrow \ -n1}$
+
 AND:\
 $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b1}{\lang e1 \ \&\& \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{AND} \ b2}$
 
@@ -186,30 +191,80 @@ OR:\
 $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ || \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{OR} \ b2}$
 
 Less than (<):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ < \ e2, \sigma \rang \ \Downarrow \ b1 \ < \ b2}$
+$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ < \ e2, \sigma \rang \ \Downarrow \ n1 \ < \ n2}$
 
 Greaten than (>):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ > \ e2, \sigma \rang \ \Downarrow \ b1 \ > \ b2}$
+$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ > \ e2, \sigma \rang \ \Downarrow \ n1 \ > \ n2}$
 
 Less than or equals (<=):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ <= \ e2, \sigma \rang \ \Downarrow \ b1 \ <= \ b2}$
+$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ <= \ e2, \sigma \rang \ \Downarrow \ n1 \ <= \ n2}$
 
 Greater than or equals (>=):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ >= \ e2, \sigma \rang \ \Downarrow \ b1 \ >= \ b2}$
+$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ >= \ e2, \sigma \rang \ \Downarrow \ n1 \ >= \ n2}$
 
 Equals (==):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ == \ e2, \sigma \rang \ \Downarrow \ b1 \ == \ b2}$
+$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ == \ e2, \sigma \rang \ \Downarrow \ n1 \ == \ n2}$
 
 Not equals (!=):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ b1 \ != \ b2}$
+$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ n1 \ != \ n2}$
 
 ### Commands
-**If** statement:\
+
+**if** statement:
+
 $\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \ \lang c1, \sigma \rang \ \Downarrow \ \sigma'}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma'}$
 
 $\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false} \ \lang c2, \sigma \rang \ \Downarrow \ \sigma''}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma''}$
 
 Not sure how to do this for elseif
 
-**While** statement:\
+**while** statement:
+
 $\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false}}{\text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma}$
+
+$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c, \sigma \rang \ \Downarrow \ \sigma' \quad \lang \text{while } b \text{ do } c,\sigma' \rang \ \Downarrow \ \sigma''}{\lang \text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma''}$
+
+assignment:\
+$\frac{}{\lang x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}$
+
+- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
+
+I implemented the interpreter myself and the interpreter executes programs according to the SOS defined above. It also panics when encountering a evaluation error. For example if the program contains 
+```rust
+let x: i32 = true + false;
+```
+the interpreter will panic with the message:
+```rust
+ "Left or right part of number expression not a number found: left = Value(Bool(true)) and right = Value(Bool(false))"
+ ```
+ 
+ which at least gives the user some context of what went wrong while interpreting the program. Note that the interpreter is only able to detect one error at the time since it panics. But this is solved in the type checker since a program that passed the type checker always will be fully executed without errors.
+
+ ## Your type checker
+- Give an as complete as possible set of Type Checking Rules for your language (those rules look very much like the SOS rules, but over types not values)
+
+asdasd
+
+- Demonstrate each "type rule" by an example
+
+asdasd
+
+- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
+
+The type checker was fully implemented by me and it rejects ill-typed programs according to the above type checking rules. 
+
+It is also able to report multiple type erros in a program. This was done by maintaining a vector containing all of the detected type errors during the type checking of the program. Then every time a type error is detected the error is pushed onto the vector and the type checker determines, if possible, the type that would have resulted if the expression was correctly typed. To demonstrate this consider the following code 
+
+```rust
+let a: bool = 5 + 5;
+let b: bool = a && true;
+let c: i32 =  b + 1;
+``` 
+running this code snippet will generate the following result
+
+```
+Error: Mismatched type for variable 'a'
+    		Note: expected bool, found i32
+Error: Binary operation '+' cannot be applied to type 'bool'
+```
+By this it can be seen that the type checker assumes that the type of ```a``` is correct when checking the assignment of ```b``` which indeed would be correctly typed if the former variable would have been correctly assigned a boolean value. Thus by following this pattern the type checker is able to continue type checking and reporting new errors, which can be seen when it reports that the assignment of ```c``` is incorrect.
