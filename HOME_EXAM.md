@@ -166,6 +166,7 @@ No error messages, except the already existing error messages from LALRPOP, have
 ## Your semantics
 - Give an as complete as possible Structural Operetional Semantics (SOS) for your language
 
+### Operators
 Addition:\
 $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 + e2, \sigma \rang \ \Downarrow \ n1 + n2}$
 
@@ -201,3 +202,14 @@ $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarr
 
 Not equals (!=):\
 $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ b1 \ != \ b2}$
+
+### Commands
+**If** statement:\
+$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \ \lang c1, \sigma \rang \ \Downarrow \ \sigma'}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma'}$
+
+$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false} \ \lang c2, \sigma \rang \ \Downarrow \ \sigma''}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma''}$
+
+Not sure how to do this for elseif
+
+**While** statement:\
+$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false}}{\text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma}$
