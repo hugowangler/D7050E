@@ -252,11 +252,49 @@ the interpreter will panic with the message:
  # Your type checker
 - Give an as complete as possible set of Type Checking Rules for your language (those rules look very much like the SOS rules, but over types not values)
 
+### Expressions
+#### Arithmetic
+Addition:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 + e2) \ : \ i32}$
 
+Subtraction:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 - e2) \ : \ i32}$
+
+Division:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 / e2) \ : \ i32}$
+
+Multiplication:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 * e2) \ : \ i32}$
+
+Unary:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32}{\Gamma \ \vdash (-e1) \ : \ i32}$
+
+#### Boolean
+AND:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ \&\& \ e2) \ : \ bool}$
+
+OR:\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ || \ e2) \ : \ bool}$
+
+Less than (<):\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ < \ e2) \ : \ bool}$
+
+Greaten than (>):\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ > \ e2) \ : \ bool}$
+
+Less than or equals (<=):\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ <= \ e2) \ : \ bool}$
+
+Greater than or equals (>=):\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ >= \ e2) \ : \ bool}$
+
+Equals (==):\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}$
+
+Not equals (!=):\
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$
 
 - Demonstrate each "type rule" by an example
-
-asdasd
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
