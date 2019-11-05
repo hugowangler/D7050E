@@ -234,6 +234,10 @@ Given a list of arguments $\overrightarrow{v} = [v_1, \ldots, v_n]$ the call of 
 
 $\frac{\lang p, \sigma \rang}{\lang p(\overrightarrow{v}), \sigma \rang \ \Darr \ \lang n, \sigma \rang}$
 
+- Explain (in text) what an interpretation of your example should produce, do that by dry running your given example step by step. Relate back to the SOS rules. You may skip repetions to avoid cluttering.
+
+TODO 
+
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
 I implemented the interpreter myself and the interpreter executes programs according to the SOS defined above. Additionaly it can also handle else-if statements, scoping and contexts (different variable values depending on the scope and context etc.). 
@@ -293,6 +297,16 @@ $\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\G
 
 Not equals (!=):\
 $\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$
+
+### Assignment
+Given the type $\tau$, variable $x$ and value $n$
+
+$\frac{\Gamma \ \vdash \ x \ : \ \tau \quad \Gamma \ \vdash \ n \ : \ \tau}{\lang x := n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}$
+
+### Functions
+Given the function $p$ with the type of its return type
+
+$\frac{\Gamma \ \vdash p \ : \ \tau \quad \lang p, \sigma \rang \ \Darr \ n}{\Gamma \ \vdash n \ : \ \tau}$
 
 - Demonstrate each "type rule" by an example
 
