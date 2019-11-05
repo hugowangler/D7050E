@@ -166,10 +166,10 @@ No error messages, except the already existing error messages from LALRPOP, have
 # Your semantics
 - Give an as complete as possible Structural Operetional Semantics (SOS) for your language
  
-## Operators
+### Operators
 Given a expression $e$ in the state $\sigma$  that evaluates to a value $n$ or boolean $b$ the following can be said for the operators in the language
 
-### Arithmetic
+#### Arithmetic
 Addition:\
 $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 + e2, \sigma \rang \ \Downarrow \ n1 + n2}$
 
@@ -185,7 +185,7 @@ $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Dow
 Unary:\
 $\frac{\lang e1, \sigma \rang \ \Downarrow \ n1}{\lang -e1, \sigma \rang \ \Downarrow \ -n1}$
 
-### Boolean
+#### Boolean
 AND:\
 $\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b1}{\lang e1 \ \&\& \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{AND} \ b2}$
 
@@ -210,7 +210,7 @@ $\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarr
 Not equals (!=):\
 $\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ n1 \ != \ n2}$
 
-## Commands
+#### Commands
 
 **if** statement:
 
@@ -251,8 +251,6 @@ the interpreter will panic with the message:
 
  # Your type checker
 - Give an as complete as possible set of Type Checking Rules for your language (those rules look very much like the SOS rules, but over types not values)
-
-## Operators
 
 
 
