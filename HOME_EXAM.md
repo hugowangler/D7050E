@@ -227,9 +227,14 @@ $\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c, \sigma \r
 assignment:\
 $\frac{}{\lang x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}$
 
+functions: \
+Given a list of arguments $\overrightarrow{v} = [v_1, \ldots, v_n]$ the call of function $p$ will evaulate to a value $n$ (the return value, if any) according to
+
+$\frac{\lang p, \sigma \rang}{\lang p(\overrightarrow{v}), \sigma \rang \ \Darr \ \lang n, \sigma \rang}$
+
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
-I implemented the interpreter myself and the interpreter executes programs according to the SOS defined above. Additionaly it can also handle else-if statements, scoping and contexts (different variable values depending on the scope and context). 
+I implemented the interpreter myself and the interpreter executes programs according to the SOS defined above. Additionaly it can also handle else-if statements, scoping and contexts (different variable values depending on the scope and context etc.). 
 
 The interpreter also panics when encountering a evaluation error. For example if the program contains 
 ```rust
