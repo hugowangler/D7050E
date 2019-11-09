@@ -105,18 +105,19 @@ fn fibonacci(n: i32) -> i32 {
 	} else {
 		return fibonacci(n - 2) + fibonacci(n - 1);
 	}
+	return 0;
 }
 
 fn main() {
 	let fib_20: i32 = fibonacci(20);
 	if (fib_20 == 6765) {
-		print("fib_20=6765");
+		print("fib_20_is_6765");
 	}
 
 	if (fib_20 > 7000) {
-		print("fib_20>7000");
+		print("fib_20_LT_7000");
 	} else {
-		print("fib_20<7000");
+		print("fib_20_GT_7000");
 	}
 
 	let mut and_res: bool = and_op(true, true);
@@ -236,7 +237,13 @@ $\frac{\lang p, \sigma \rang}{\lang p(\overrightarrow{v}), \sigma \rang \ \Darr 
 
 - Explain (in text) what an interpretation of your example should produce, do that by dry running your given example step by step. Relate back to the SOS rules. You may skip repetions to avoid cluttering.
 
-TODO 
+The example program will be started by calling the main function. The first line is an assignment of variable  `fib_20` which according to the SoS will be assigned the value of the function call `fibonacci(20)`. Thus the function call is evaluated and assigned to the variable. When the call is made the argument is `n = 20` which according to the SoS for equals (==) will evaluate to false for both the if- and elseif-condition inside the function body. Because of this the else-statement is executed and the recursion continues. After the recursion have reached the base case the function will return a `i32`. The variable `fib_20` now exists inside the scope of the main functions context.
+
+The condition of the next if-statement is now evaluated and since `fib_20 = 6765` in the scope the condition will evaluate to true according to the SoS and the print command inside the if-body is executed. Since `fib_20` not is greater than 7000 the else-statement is executed in the next if-else statement.
+
+After this a new mutable variable `and_res` is declared. The variable is assigned the value of the function call. The while-conditon is then checked and since `and_res = true` the body is executed according to the SoS. In the body the variable is assigned a new value, which is fine since it's declared as mutable, but since the new value is false the while-condition will not evalute to true and the while-body is not executed again. The value of `and_res` is then printed out to ensure that the value of the mutable variable was changed.
+
+This continues on to cover more of the EBNF but the operations is mostly repetition so I've skipped explaining them.
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
@@ -309,6 +316,8 @@ Given the function $p$ with the type of its return type
 $\frac{\Gamma \ \vdash p \ : \ \tau \quad \lang p, \sigma \rang \ \Darr \ n}{\Gamma \ \vdash n \ : \ \tau}$
 
 - Demonstrate each "type rule" by an example
+
+TODO
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
