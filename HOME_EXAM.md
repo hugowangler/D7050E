@@ -227,6 +227,9 @@ $\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false}}{\text{while } b \text{
 
 $\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c, \sigma \rang \ \Downarrow \ \sigma' \quad \lang \text{while } b \text{ do } c,\sigma' \rang \ \Downarrow \ \sigma''}{\lang \text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma''}$
 
+**let** statement:\
+$\frac{}{\lang \text{let }x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}$
+
 assignment:\
 $\frac{}{\lang x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}$
 
@@ -288,27 +291,32 @@ OR:\
 $\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ || \ e2) \ : \ bool}$
 
 Less than (<):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ < \ e2) \ : \ bool}$
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ < \ e2) \ : \ bool}$
 
 Greaten than (>):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ > \ e2) \ : \ bool}$
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ > \ e2) \ : \ bool}$
 
 Less than or equals (<=):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ <= \ e2) \ : \ bool}$
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ <= \ e2) \ : \ bool}$
 
 Greater than or equals (>=):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ >= \ e2) \ : \ bool}$
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ >= \ e2) \ : \ bool}$
 
 Equals (==):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}$
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}$ and
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}$
 
 Not equals (!=):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$
+$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$ and
+$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$
 
 ### Assignment
 Given the type $\tau$, variable $x$ and value $n$
 
 $\frac{\Gamma \ \vdash \ x \ : \ \tau \quad \Gamma \ \vdash \ n \ : \ \tau}{\lang x := n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}$
+
+### **let** assignment
+$\frac{\Gamma \ \vdash \ n \ : \ \tau}{\lang \text{let} \  x \ : \ \tau \ := \ n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}$
 
 ### Functions
 Given the function $p$ with the type of its return type
@@ -317,7 +325,60 @@ $\frac{\Gamma \ \vdash p \ : \ \tau \quad \lang p, \sigma \rang \ \Darr \ n}{\Ga
 
 - Demonstrate each "type rule" by an example
 
-TODO
+### Arithmetics
+The following shows the type rules for arithmetic operations, the only difference between the type rules is the operator and thus it's not repeated for every arithmetic operation.
+```rust
+5 + 5	// ok
+true + 5	// error
+true + false	// error
+```
+
+### Boolean
+Examples of type rules for boolean operations
+```rust
+true && false	// ok
+true && 4	// error
+
+true || false 	// ok
+5 || false	// error
+
+4 < 3 // ok
+4 < true	// error
+true < false	// error
+
+4 > 3 	// ok
+4 > true 	// error
+true > false 	// error
+
+4 <= 3 	// ok
+4 <= true 	// error
+true <= false 	// error
+
+4 >= 3	// ok
+4 >= true	// error
+true >= false 	// error
+
+4 == 3 // ok
+false == true	// ok
+5 == false 	// error
+
+4 != 3 // ok
+false != true	// ok
+5 != false 	// error
+```
+
+### Assignments
+If variable `x` and `y` has been defined as a `i32`
+```rust
+x = 10	// ok
+x = y	// ok
+x = true // error
+x = 10 + y - 50 // ok, any expression which evaluates to i32 is allowed
+x = true && false // error, any boolean expression will generate a type error
+```
+
+### *let* assignment
+
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
