@@ -318,10 +318,25 @@ $\frac{\Gamma \ \vdash \ x \ : \ \tau \quad \Gamma \ \vdash \ n \ : \ \tau}{\lan
 ### **let** assignment
 $\frac{\Gamma \ \vdash \ n \ : \ \tau}{\lang \text{let} \  x \ : \ \tau \ := \ n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}$
 
+### **while** statement
+The condition, $b$, of the while statement  
+
+$\frac{}{\Gamma \ \vdash b \ : \ bool}$
+
+### **if/elseif** statement
+The conditions, $b_i$, of the if- and elseif-statements
+
+$\frac{}{\Gamma \ \vdash b_i \ : \ bool}$
+
 ### Functions
 Given the function $p$ with the type of its return type
 
 $\frac{\Gamma \ \vdash p \ : \ \tau \quad \lang p, \sigma \rang \ \Darr \ n}{\Gamma \ \vdash n \ : \ \tau}$
+
+#### Parameters and arguments
+Given a function with parameters $p1, \dotsb, p_i$ and arguments $a1, \dotsb, a_i$ then for every parameter and argument
+
+$\frac{\Gamma \ \vdash p_i \ : \ \tau}{\Gamma \ \vdash a_i \ : \ \tau}$
 
 - Demonstrate each "type rule" by an example
 
@@ -370,15 +385,20 @@ false != true	// ok
 ### Assignments
 If variable `x` and `y` has been defined as a `i32`
 ```rust
-x = 10	// ok
-x = y	// ok
-x = true // error
+x = 10 // ok
+x = y // ok
+x = true  // error
 x = 10 + y - 50 // ok, any expression which evaluates to i32 is allowed
 x = true && false // error, any boolean expression will generate a type error
 ```
 
-### *let* assignment
-
+### **let** assignment
+```rust
+let x: i32 = 10; 	// ok, aswell as any expression which evaluates to i32
+let y: bool = true; // ok, aswell as any expression which evaluates to boolean
+let z: bool = 5; 	// error
+let x: i32 = true; 	// error
+```
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
