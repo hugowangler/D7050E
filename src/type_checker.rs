@@ -111,9 +111,12 @@ fn does_return(body: Box<Node>) -> bool {
         Node::IfElse {
             cond: _,
             if_statement: _,
-            else_statement: _,
+            else_statement,
             next,
-        } => check_next!(next),
+        } => match does_return(else_statement) {
+            true => true,
+            false => check_next!(next),
+        },
         Node::While {
             cond: _,
             statement: _,

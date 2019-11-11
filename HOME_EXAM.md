@@ -94,7 +94,7 @@ Identifier: = [a-zA-Z][a-zA-Z0-9_]* ;
 
 Num = [0-9]+ ;
 ```	
-- Give an example that showcases all rules of your EBNF. The program should "do" something as used in the next excercise.
+- Give an example that showcases all rules of your EBNF. The program should "do" something as used in the next exercise.
 
 ```rust
 fn fibonacci(n: i32) -> i32 {
@@ -105,7 +105,6 @@ fn fibonacci(n: i32) -> i32 {
 	} else {
 		return fibonacci(n - 2) + fibonacci(n - 1);
 	}
-	return 0;
 }
 
 fn main() {
@@ -158,9 +157,9 @@ fn prec_test() -> i32 {
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
-The parser was implemented using the [LALRPOP](https://github.com/lalrpop/lalrpop) parser generator. By following the LALRPOP tutorial to learn the syntax and some of the functionality a expression parser was implemented. Thus I didn't implemented the expression parser myself but I built upon it and extended it to implement the rest of the parser for my language. 
+The parser was implemented using the [LALRPOP](https://github.com/lalrpop/lalrpop) parser generator. By following the LALRPOP tutorial, to learn the syntax and some of the functionality, an expression parser was implemented. Thus I didn't implemented the expression parser myself but I built upon it and extended it to implement the rest of the parser for my language. 
 
-When it comes precedence of the expression parser the tutorial already had it implemented for numerical expressions. When I extended the parser to support logical and relational operations the precedence of those operations works if you don't mix logical and relation operations together. So for the most part in my language sub expressions have to be parantesized if they contain those operations.
+When it comes precedence of the expression parser the tutorial already had it implemented for numerical expressions. When I extended the parser to support logical and relational operations the precedence of those operations works if you don't mix logical and relation operations together. So for the most part in my language sub expressions have to be parenthesized if they contain those operations.
 
 No error messages, except the already existing error messages from LALRPOP, have been implemented in the parser. And thus no error recovery is possible since the parser just forwards the LALRPOP error message and stops if an error occurs while parsing the program.
 
@@ -244,15 +243,15 @@ The example program will be started by calling the main function. The first line
 
 The condition of the next if-statement is now evaluated and since `fib_20 = 6765` in the scope the condition will evaluate to true according to the SoS and the print command inside the if-body is executed. Since `fib_20` not is greater than 7000 the else-statement is executed in the next if-else statement.
 
-After this a new mutable variable `and_res` is declared. The variable is assigned the value of the function call. The while-conditon is then checked and since `and_res = true` the body is executed according to the SoS. In the body the variable is assigned a new value, which is fine since it's declared as mutable, but since the new value is false the while-condition will not evalute to true and the while-body is not executed again. The value of `and_res` is then printed out to ensure that the value of the mutable variable was changed.
+After this a new mutable variable `and_res` is declared. The variable is assigned the value of the function call. The while-condition is then checked and since `and_res = true` the body is executed according to the SoS. In the body the variable is assigned a new value, which is fine since it's declared as mutable, but since the new value is false the while-condition will not evaluate to true and the while-body is not executed again. The value of `and_res` is then printed out to ensure that the value of the mutable variable was changed.
 
 This continues on to cover more of the EBNF but the operations is mostly repetition so I've skipped explaining them.
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
 
-I implemented the interpreter myself and the interpreter executes programs according to the SOS defined above. Additionaly it can also handle else-if statements, scoping and contexts (different variable values depending on the scope and context etc.). 
+I implemented the interpreter myself and the interpreter executes programs according to the SOS defined above. Additionally it can also handle else-if statements, scoping and contexts (different variable values depending on the scope and context etc.). 
 
-The interpreter also panics when encountering a evaluation error. For example if the program contains 
+The interpreter also panics when encountering a evaluation error. For example, if the program contains 
 ```rust
 let x: i32 = true + false;
 ```
@@ -468,7 +467,7 @@ param_func(4);	// error
 
 The type checker was fully implemented by me and it rejects ill-typed programs according to the above type checking rules. 
 
-It is also able to report multiple type erros while at the same time not report other errors originating from an earlier detected error. This was done by maintaining a vector containing all of the detected type errors during the type checking of the program. Then every time a type error is detected the error is pushed onto the vector and the type checker determines, if possible, the type that would have resulted if the expression was correctly typed. To demonstrate this consider the following code 
+It is also able to report multiple type errors while at the same time not report other errors originating from an earlier detected error. This was done by maintaining a vector containing all the detected type errors during the type checking of the program. Then every time a type error is detected the error is pushed onto the vector and the type checker determines, if possible, the type that would have resulted if the expression was correctly typed. To demonstrate this, consider the following code 
 
 ```rust
 let a: bool = 5 + 5;
@@ -483,3 +482,20 @@ Error: Mismatched type for variable 'a'
 Error: Binary operation '+' cannot be applied to type 'bool'
 ```
 By this it can be seen that the type checker assumes that the type of ```a``` is correct when checking the assignment of ```b``` which indeed would be correctly typed if the former variable would have been correctly assigned a boolean value. Thus by following this pattern the type checker is able to continue type checking and reporting new errors, which can be seen when it reports that the assignment of ```c``` is incorrect (addition with boolean is not possible).
+
+The type checker also makes sure that functions with a specified return type always returns. This is done by going through each function and making sure that a tailing return statement or a return inside an else-statement exists. If this is not the case the error is reported along with all other type errors found.
+
+# Your borrow checker
+- Give a specification for well versus ill formed borrows. (What are the rules the borrow checker should check).
+
+The borrow checker needs to make sure that a borrow lasts for a scope no greater than the owners scope by keeping track of lifetimes which describe the scope that a reference is valid for.
+
+It also needs to keep track of the kind of borrow that have been made to a resource, since different kinds of borrows of the same resource cannot be made at the same time. The two kinds of borrows are references (&T) and mutable references (&mut T). If a reference has been made one or more references are allowed, but if it is a mutable reference exactly one is allowed in order to assure that no data race occurs.
+
+**I did not implement a borrow checker for my language so the next rest of the questions regarding the borrow checker could not be answered.**
+
+# Your LLVM backend
+TODO
+
+# Overal course goals and learning outcomes
+TODO
