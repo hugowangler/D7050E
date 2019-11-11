@@ -382,22 +382,86 @@ false != true	// ok
 5 != false 	// error
 ```
 
+In the following examples any integers and booleans could be replaced by arbitrary expression which evaluates to the same type and the result would be the same.
 ### Assignments
 If variable `x` and `y` has been defined as a `i32`
 ```rust
 x = 10 // ok
 x = y // ok
 x = true  // error
-x = 10 + y - 50 // ok, any expression which evaluates to i32 is allowed
-x = true && false // error, any boolean expression will generate a type error
 ```
 
 ### **let** assignment
 ```rust
-let x: i32 = 10; 	// ok, aswell as any expression which evaluates to i32
-let y: bool = true; // ok, aswell as any expression which evaluates to boolean
-let z: bool = 5; 	// error
+let x: i32 = 10; 	// ok
 let x: i32 = true; 	// error
+let y: bool = true; // ok
+let y: bool = 5; 	// error
+```
+
+### **while** statement
+```rust
+while(true) {	// ok
+	...
+}
+
+while(5) {	// error
+	...
+}
+```
+
+### **if/elseif** statements
+```rust
+if (true) {	// ok
+	...
+}
+
+if (5) {	// error
+	...
+}
+
+if (false) {
+	...
+} else if (true) {	// ok
+	...
+}
+
+if (false) {
+	...
+} else if (123) {	// error
+	...
+}
+```
+
+### Functions
+```rust
+fn int_func() -> i32 {	// ok
+	return 4;
+}
+
+fn int_func() -> i32 {	// error
+	return true;
+}
+
+fn bool_func() -> bool {	// ok
+	return false;
+}
+
+fn bool_func() -> bool {	// error
+	return 5;
+}
+```
+#### Parameters and arguments
+```rust
+fn param_func(a: i32, b: bool) {
+	...
+}
+
+param_func(5, true);	// ok
+param_func(true, true);	// error
+param_func(5, 5);	// error
+param_func(true, 4);	// error
+param_func(4);	// error
 ```
 
 - Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
