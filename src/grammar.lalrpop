@@ -10,47 +10,31 @@ grammar;
 
 // Creates a vector containing all the functions of the input = the program
 pub Program: Vec<Box<Node>> = {
-    VectorizeFuncs => <>
+    <funcs:FuncDef*> => funcs
 }
 
 pub Statement: Box<Node> = {
-    <mut curr:Keyword> ";" <next:Statement> => {
+    <mut curr:Keyword> <next:Statement> => {
 		curr.insert_next(next);
 		curr
 	},
-    <mut curr:Keyword> "}" <next:Statement> => {
-		curr.insert_next(next);
-		curr
-	},
-    <Keyword> ";" => <>,
-    <Keyword> "}" => <>
+	<Keyword> => <>
 };
 
 pub Keyword: Box<Node> = {
-    "let" <Assign>,
-    "if" <IfStatement>,
-    "while" <WhileStatement>,
-    Print,
-    AssignValue,
-    LoopModifier,
-    Return,
-    FuncCall
+    "let" <Assign> ";" => <>,
+    "if" <IfStatement> => <>,
+    "while" <WhileStatement> => <>,
+    <Print> ";" => <>,
+    <AssignValue> ";" => <>,
+    <LoopModifier> ";" => <>,
+    <Return> ";" => <>,
+    <FuncCall> ";" => <>
 };
 
 Print: Box<Node> = {
     "print(" <e:Expr> ")" => Box::new(Node::Print{expr: e, next: None})
 };
-
-VectorizeFuncs: Vec<Box<Node>> = {
-    <funcs:(<FuncDef> "}")*> <more:FuncDef?> => match more {
-        Some(more) => {
-            let mut funcs = funcs;
-            funcs.push(more);
-            funcs
-        },
-        None => funcs
-    }
-}
 
 FuncCall: Box<Node> = {
     <n:Identifier>"("<a:FuncArgs>")" => Box::new(
@@ -64,7 +48,7 @@ FuncCall: Box<Node> = {
 
 // TODO: Empty functions i.e. fn main(){}
 FuncDef: Box<Node> = {
-   "fn" <n:Identifier> "("<p:FuncParams>")" <r:("->" <LitType>)?> "{" <s:Statement> => Box::new(
+   "fn" <n:Identifier> "("<p:FuncParams>")" <r:("->" <LitType>)?> "{" <s:Statement> "}" => Box::new(
         Node::Func{
             name: n,
             params: p,
@@ -121,7 +105,7 @@ LoopModifier: Box<Node> = {
 
 // TODO: Make parentheses optional in loops
 WhileStatement: Box<Node> = {
-    "(" <c:Cond> ")" "{" <s:Statement> => Box::new(
+    "(" <c:Cond> ")" "{" <s:Statement> "}" => Box::new(
         Node::While{
             cond: c,
             statement: s,
@@ -133,7 +117,7 @@ WhileStatement: Box<Node> = {
 // TODO: Ignore whitespaces inbetween else statements and "{"
 IfStatement: Box<Node> = {
     // Plain if
-    "(" <c:Cond> ")" "{" <i:Statement> => Box::new(
+    "(" <c:Cond> ")" "{" <i:Statement> "}" => Box::new(
         Node::If{
             cond: c,
             statement: i,
@@ -142,7 +126,7 @@ IfStatement: Box<Node> = {
     ),
 
     // if-else
-    "(" <c:Cond> ")" "{" <i:Statement> "} else {" <e:Statement> => Box::new(
+    "(" <c:Cond> ")" "{" <i:Statement> "} else {" <e:Statement> "}" => Box::new(
         Node::IfElse{
             cond: c,
             if_statement: i,
@@ -212,6 +196,7 @@ ExprRelOp: Opcode = {
 Factor: Box<Node> = {
     Factor FactorOp Term => Box::new(Node::Expr(<>)),
 	Factor FactorLogOp Term => Box::new(Node::Expr(<>)),
+	UnaryOp Term => Box::new(Node::UnaryOp(<>)),
     Term
 };
 
@@ -231,7 +216,8 @@ UnaryOp: Opcode = {
 
 Term: Box<Node> = {
     Num => Box::new(Node::Number(<>)),
-	<o:UnaryOp> <n:Num> => Box::new(Node::UnaryOp(o, Box::new(Node::Number(n)))),
+	// <o:UnaryOp> <n:Num> => Box::new(Node::UnaryOp(o, Box::new(Node::Number(n)))),
+	// <o:UnaryOp> <v:Var> => Box::new(Node::UnaryOp(o, v)),	
     Var,
     Bool,
     _String,
