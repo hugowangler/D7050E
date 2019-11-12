@@ -14,10 +14,12 @@ mod type_errors;
 mod types;
 mod value;
 mod variable;
+mod llvm;
 
 use std::path::Path;
 
 #[allow(unused)]
 fn main() {
-    program::run(Path::new("input.rs"));
+	// program::run(Path::new("input.rs"));
+	llvm::main();
 }
