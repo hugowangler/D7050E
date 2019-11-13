@@ -48,7 +48,7 @@ macro_rules! extract_next {
                 args: _,
                 next,
             } => next,
-            _ => unreachable!(),
+            _ => None,
         }
     };
 }
@@ -57,10 +57,9 @@ type ExprFunc = unsafe extern "C" fn() -> i32;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     let input = statement_parser::parse(
-        "
-		let x: i32 = 7;
-		let y: i32 = 7 + 20;
-		return x + y;
+		"
+		let x: bool = true;
+		return true;
 		",
     )
     .unwrap();
@@ -83,7 +82,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         unsafe { execution_engine.get_function("main").ok().unwrap() };
     unsafe {
         println!("\nexection result = {}", fun_expr.call());
-    }
+	}
+	
+	function.verify(true);
 
     Ok(())
 }
@@ -92,9 +93,11 @@ pub struct Compiler {
     pub context: Context,
     pub builder: Builder,
     pub module: Module,
-    scopes: Vec<HashMap<String, PointerValue>>,
+    variables: HashMap<String, PointerValue>,
 }
 
+/// The compiler assumes that it compiles programs which have been type checked and
+/// should therefore not contain any errors
 impl Compiler {
     fn new() -> Self {
         let context = Context::create();
@@ -102,15 +105,10 @@ impl Compiler {
             builder: context.create_builder(),
             module: context.create_module("main"),
             context: context,
-            scopes: vec![],
+            variables: HashMap::new(),
         }
     }
 
-
-	fn get_variable(&self, ) {
-
-	}
-	
     /// Creates a new stack allocation instruction in the entry block of the function
     fn create_entry_block_alloca(&mut self, name: &str, block: &BasicBlock) -> PointerValue {
         let builder = self.context.create_builder();
@@ -121,34 +119,27 @@ impl Compiler {
         }
 
         let alloca = builder.build_alloca(self.context.i32_type(), name);
-        self.scopes
-            .iter_mut()
-            .last()
-            .unwrap()
-            .insert(name.to_string(), alloca);
+        self.variables.insert(name.to_string(), alloca);
         alloca
     }
 
+	/// Compiles all of the statements in a block
     fn compile_block(&mut self, statement: Box<Node>, block: &BasicBlock) {
-		// push new scope for block
-		self.scopes.push(HashMap::new());
-		
-		// Compile all statements in the block
 		let mut next_statement = Some(statement);
-		while match next_statement {
-			Some(_) => true,
-			None => false,
-		} {
-			self.compile_stmnt(next_statement.clone().unwrap(), block);
-			next_statement = extract_next!(next_statement);
-		}
-
-		self.scopes.pop();
+		
+		// While the current statement contains a next statement compile it
+        while match next_statement {
+            Some(_) => true,
+            None => false,
+        } {
+            self.compile_stmnt(next_statement.clone().unwrap(), block);
+            next_statement = extract_next!(next_statement);
+        }
     }
 
     fn compile_stmnt(&mut self, statement: Box<Node>, block: &BasicBlock) {
         match *statement {
-            Node::Let { var, expr, next: _ } => {
+            Node::Let { var, expr, .. } => {
                 // Get variable identifier
                 let id = match *var {
                     Node::VarBinding(var, _, _) => match *var {
@@ -157,11 +148,23 @@ impl Compiler {
                     },
                     _ => unreachable!(),
                 };
-                let expr_val = self.compile_expr(expr);
+				let expr_val = self.compile_expr(expr);
+				
                 // Allocate local variable on stack
                 let alloca = self.create_entry_block_alloca(&id, block);
                 self.builder.build_store(alloca, expr_val);
             }
+            Node::VarValue { var, expr, .. } => {	// update var
+				let id = match *var {
+					Node::Var(id) => id,
+					_ => unreachable!()
+				};
+				let expr_val = self.compile_expr(expr);
+
+				// Get the variables pointer value and store new value
+				let var = self.variables.get(&id).unwrap();
+				self.builder.build_store(*var, expr_val);
+			}
             Node::Return(expr) => {
                 let ret_val = self.compile_expr(expr);
                 self.builder.build_return(Some(&ret_val));
@@ -183,19 +186,20 @@ impl Compiler {
                     Opcode::Sub => self.builder.build_int_neg(value, "neg"),
                     _ => unreachable!(),
                 }
+            }
+            Node::Var(id) => {
+				let var = self.variables.get(&id).unwrap();
+				self.builder.build_load(*var, &id).into_int_value()
 			},
             Node::Expr(left, op, right) => {
                 let l_val = self.compile_expr(left);
                 let r_val = self.compile_expr(right);
 
                 match op {
-                    // Arithmetic
                     Opcode::Add => self.builder.build_int_add(l_val, r_val, "add"),
                     Opcode::Sub => self.builder.build_int_sub(l_val, r_val, "sub"),
                     Opcode::Mul => self.builder.build_int_mul(l_val, r_val, "mul"),
                     Opcode::Div => self.builder.build_int_signed_div(l_val, r_val, "div"),
-
-                    // Boolean
                     Opcode::AND => self.builder.build_and(l_val, r_val, "and"),
                     Opcode::OR => self.builder.build_or(l_val, r_val, "and"),
                     Opcode::EQ => {
