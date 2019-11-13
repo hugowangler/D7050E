@@ -12,42 +12,42 @@ use inkwell::{
     IntPredicate, OptimizationLevel,
 };
 
-use crate::{ast::Node, operators::Opcode, parse::expr_parser};
+use crate::{ast::Node, operators::Opcode, parse::statement_parser};
 
 macro_rules! extract_next {
     ($statement:tt) => {
-        match *$statement {
+        match *$statement.unwrap() {
             Node::VarValue {
                 var: _,
                 expr: _,
                 next,
-            } => Box::new(next),
+            } => next,
             Node::Let {
                 var: _,
                 expr: _,
                 next,
-            } => Box::new(next),
+            } => next,
             Node::If {
                 cond: _,
                 statement: _,
                 next,
-            } => Box::new(next),
+            } => next,
             Node::IfElse {
                 cond: _,
                 if_statement: _,
                 else_statement: _,
                 next,
-            } => Box::new(next),
+            } => next,
             Node::While {
                 cond: _,
                 statement: _,
                 next,
-            } => Box::new(next),
+            } => next,
             Node::FuncCall {
                 name: _,
                 args: _,
                 next,
-            } => Box::new(next),
+            } => next,
             _ => unreachable!(),
         }
     };
@@ -56,14 +56,16 @@ macro_rules! extract_next {
 type ExprFunc = unsafe extern "C" fn() -> i32;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
-    let input = expr_parser::parse(
+    let input = statement_parser::parse(
         "
-		5
+		let x: i32 = 7;
+		let y: i32 = 7 + 20;
+		return x + y;
 		",
     )
     .unwrap();
     println!("ast = {:?}", &input);
-    let compiler = Compiler::new();
+    let mut compiler = Compiler::new();
     let execution_engine = compiler
         .module
         .create_jit_execution_engine(OptimizationLevel::None)?;
@@ -74,7 +76,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let basic_block = compiler.context.append_basic_block(&function, "entry");
     compiler.builder.position_at_end(&basic_block);
 
-    compiler.compile_expr(input);
+    compiler.compile_block(input, &basic_block);
     compiler.module.print_to_stderr();
 
     let fun_expr: JitFunction<ExprFunc> =
@@ -104,6 +106,11 @@ impl Compiler {
         }
     }
 
+
+	fn get_variable(&self, ) {
+
+	}
+	
     /// Creates a new stack allocation instruction in the entry block of the function
     fn create_entry_block_alloca(&mut self, name: &str, block: &BasicBlock) -> PointerValue {
         let builder = self.context.create_builder();
@@ -122,11 +129,21 @@ impl Compiler {
         alloca
     }
 
-    fn compile_block(&mut self, statements: Box<Node>, block: &BasicBlock) {
+    fn compile_block(&mut self, statement: Box<Node>, block: &BasicBlock) {
+		// push new scope for block
 		self.scopes.push(HashMap::new());
 		
-		let next_statement = Some(statements);
-		
+		// Compile all statements in the block
+		let mut next_statement = Some(statement);
+		while match next_statement {
+			Some(_) => true,
+			None => false,
+		} {
+			self.compile_stmnt(next_statement.clone().unwrap(), block);
+			next_statement = extract_next!(next_statement);
+		}
+
+		self.scopes.pop();
     }
 
     fn compile_stmnt(&mut self, statement: Box<Node>, block: &BasicBlock) {
@@ -149,7 +166,7 @@ impl Compiler {
                 let ret_val = self.compile_expr(expr);
                 self.builder.build_return(Some(&ret_val));
             }
-            _ => unimplemented!(),
+            _ => unimplemented!("compile_stmnt: Node {:?}", statement),
         }
     }
 
@@ -166,7 +183,7 @@ impl Compiler {
                     Opcode::Sub => self.builder.build_int_neg(value, "neg"),
                     _ => unreachable!(),
                 }
-            }
+			},
             Node::Expr(left, op, right) => {
                 let l_val = self.compile_expr(left);
                 let r_val = self.compile_expr(right);
