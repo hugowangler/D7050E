@@ -5,6 +5,7 @@ mod ast;
 mod context;
 mod function;
 mod interpreter;
+mod llvm;
 mod operators;
 mod parse;
 mod program;
@@ -14,12 +15,11 @@ mod type_errors;
 mod types;
 mod value;
 mod variable;
-mod llvm;
 
 use std::path::Path;
 
 #[allow(unused)]
 fn main() {
-	// program::run(Path::new("input.rs"));
-	llvm::main();
+    program::run(Path::new("input.rs"));
+    llvm::main();
 }
