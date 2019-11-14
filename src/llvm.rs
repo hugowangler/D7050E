@@ -62,12 +62,17 @@ type ExprFunc = unsafe extern "C" fn() -> i32;
 pub fn main() -> Result<(), Box<dyn Error>> {
     let input = statement_parser::parse(
         "
-		let x: bool = false;
 		let mut test: i32 = 5;
 
-		if (x) {
+		if (test == 0) {
 			test = 10;
-			return test + 5;
+		} else if (test == 5) {
+			let mut test: bool = true;
+			if (test == 5) {
+				return 1000;
+			}
+		} else {
+			test = 30;
 		}
 		
 		return test;
@@ -96,7 +101,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         println!("\nexection result = {}", fun_expr.call());
     }
 
-    // function.verify(true);
+    function.verify(true);
 
     Ok(())
 }
@@ -215,7 +220,29 @@ impl Compiler {
 		let func = self.fn_value();
 		let cond = self.compile_expr(cond);
 
-		
+		// build branches
+		let then_bb = self.context.append_basic_block(&func, "then");
+		let else_bb = self.context.append_basic_block(&func, "else");
+		let cont_bb = self.context.append_basic_block(&func, "ifcont");
+
+		self.builder.build_conditional_branch(cond, &then_bb, &else_bb);
+
+		// build then block
+		self.builder.position_at_end(&then_bb);
+		self.compile_block(if_stmnt, &then_bb);
+		self.builder.build_unconditional_branch(&cont_bb);
+
+		// build else block
+		self.builder.position_at_end(&else_bb);
+		self.compile_block(else_stmnt, &else_bb);
+		self.builder.build_unconditional_branch(&cont_bb);
+
+		// merge
+		self.builder.position_at_end(&cont_bb);
+		let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
+
+		let some_num = self.context.i32_type().const_int(2, false);
+		phi.add_incoming(&[(&some_num, &then_bb), (&some_num, &else_bb)]);
 	}
 
 	/// Compiles plain if statements 
@@ -230,12 +257,12 @@ impl Compiler {
         self.builder
             .build_conditional_branch(cond, &then_bb, &cont_bb);
 
-        // then block
+        // build then block
         self.builder.position_at_end(&then_bb);
         self.compile_block(statement, &then_bb);
         self.builder.build_unconditional_branch(&cont_bb);
 
-        // emit merge node
+        // merge
         self.builder.position_at_end(&cont_bb);
         let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
 
