@@ -95,7 +95,7 @@ Param: Box<Node> = {
 };
 
 Return: Box<Node> = {
-    "return" <Expr> => Box::new(Node::Return(<>))
+    "return" <Expr> => Box::new(Node::Return{expr: <>, next: None})
 };
 
 LoopModifier: Box<Node> = {

@@ -6,10 +6,14 @@ use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
     module::Module,
-    passes::PassManager,
-    types::BasicTypeEnum,
-    values::{BasicValueEnum, FloatValue, FunctionValue, InstructionValue, IntValue, PointerValue},
-    IntPredicate, OptimizationLevel,
+    // passes::PassManager,
+    // types::BasicTypeEnum,
+    values::{
+        /*BasicValueEnum, FloatValue,*/ FunctionValue, /*InstructionValue,*/ IntValue,
+        PointerValue,
+    },
+    IntPredicate,
+    OptimizationLevel,
 };
 
 use crate::{ast::Node, operators::Opcode, parse::statement_parser};
@@ -57,9 +61,16 @@ type ExprFunc = unsafe extern "C" fn() -> i32;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     let input = statement_parser::parse(
-		"
-		let x: bool = true;
-		return true;
+        "
+		let x: bool = false;
+		let mut test: i32 = 5;
+
+		if (x) {
+			test = 10;
+			return test + 5;
+		}
+		
+		return test;
 		",
     )
     .unwrap();
@@ -74,6 +85,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let function = compiler.module.add_function("main", fn_type, None);
     let basic_block = compiler.context.append_basic_block(&function, "entry");
     compiler.builder.position_at_end(&basic_block);
+    compiler.curr_fn = Some(function);
 
     compiler.compile_block(input, &basic_block);
     compiler.module.print_to_stderr();
@@ -82,18 +94,19 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         unsafe { execution_engine.get_function("main").ok().unwrap() };
     unsafe {
         println!("\nexection result = {}", fun_expr.call());
-	}
-	
-	function.verify(true);
+    }
+
+    // function.verify(true);
 
     Ok(())
 }
 
 pub struct Compiler {
-    pub context: Context,
-    pub builder: Builder,
-    pub module: Module,
+    context: Context,
+    builder: Builder,
+    module: Module,
     variables: HashMap<String, PointerValue>,
+    curr_fn: Option<FunctionValue>,
 }
 
 /// The compiler assumes that it compiles programs which have been type checked and
@@ -106,6 +119,15 @@ impl Compiler {
             module: context.create_module("main"),
             context: context,
             variables: HashMap::new(),
+            curr_fn: None,
+        }
+    }
+
+    /// Gets the function value of the function which is currently being compiled
+    fn fn_value(&self) -> FunctionValue {
+        match self.curr_fn {
+            Some(function) => function,
+            None => panic!("No current function set"),
         }
     }
 
@@ -123,20 +145,23 @@ impl Compiler {
         alloca
     }
 
-	/// Compiles all of the statements in a block
+    /// Compiles all of the statements in a block
     fn compile_block(&mut self, statement: Box<Node>, block: &BasicBlock) {
-		let mut next_statement = Some(statement);
-		
-		// While the current statement contains a next statement compile it
+        let mut next_statement = Some(statement);
+
+        // While the current statement contains a next statement compile it
         while match next_statement {
             Some(_) => true,
             None => false,
         } {
             self.compile_stmnt(next_statement.clone().unwrap(), block);
+
             next_statement = extract_next!(next_statement);
         }
     }
 
+    /// Compiles a statement and returns the instruction value along with a bool which indactes
+    /// if the statement was a return statement
     fn compile_stmnt(&mut self, statement: Box<Node>, block: &BasicBlock) {
         match *statement {
             Node::Let { var, expr, .. } => {
@@ -148,38 +173,85 @@ impl Compiler {
                     },
                     _ => unreachable!(),
                 };
-				let expr_val = self.compile_expr(expr);
-				
+                let expr_val = self.compile_expr(expr);
+
                 // Allocate local variable on stack
                 let alloca = self.create_entry_block_alloca(&id, block);
                 self.builder.build_store(alloca, expr_val);
             }
-            Node::VarValue { var, expr, .. } => {	// update var
-				let id = match *var {
-					Node::Var(id) => id,
-					_ => unreachable!()
-				};
-				let expr_val = self.compile_expr(expr);
 
-				// Get the variables pointer value and store new value
-				let var = self.variables.get(&id).unwrap();
-				self.builder.build_store(*var, expr_val);
-			}
-            Node::Return(expr) => {
+            Node::VarValue { var, expr, .. } => {
+                // update var
+                let id = match *var {
+                    Node::Var(id) => id,
+                    _ => unreachable!(),
+                };
+                let expr_val = self.compile_expr(expr);
+
+                // Get the variables pointer value and store new value
+                let var = self.variables.get(&id).unwrap();
+                self.builder.build_store(*var, expr_val);
+            }
+
+            Node::Return { expr, .. } => {
                 let ret_val = self.compile_expr(expr);
                 self.builder.build_return(Some(&ret_val));
             }
+
+            Node::If {
+                cond, statement, ..
+			} => self.compile_if(cond, statement),
+			
+			Node::IfElse {
+				cond, if_statement, else_statement, ..
+			} => self.compile_if_else(cond, if_statement, else_statement),
+
             _ => unimplemented!("compile_stmnt: Node {:?}", statement),
         }
+	}
+	
+	/// Compiles if statements with else and/or elseif
+	fn compile_if_else(&mut self, cond: Box<Node>, if_stmnt: Box<Node>, else_stmnt: Box<Node>) {
+		let func = self.fn_value();
+		let cond = self.compile_expr(cond);
+
+		
+	}
+
+	/// Compiles plain if statements 
+    fn compile_if(&mut self, cond: Box<Node>, statement: Box<Node>) {
+        let func = self.fn_value();
+        let cond = self.compile_expr(cond);
+
+        // build then and continue branch
+        let then_bb = self.context.append_basic_block(&func, "then");
+        let cont_bb = self.context.append_basic_block(&func, "ifcont");
+
+        self.builder
+            .build_conditional_branch(cond, &then_bb, &cont_bb);
+
+        // then block
+        self.builder.position_at_end(&then_bb);
+        self.compile_block(statement, &then_bb);
+        self.builder.build_unconditional_branch(&cont_bb);
+
+        // emit merge node
+        self.builder.position_at_end(&cont_bb);
+        let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
+
+        let some_num = self.context.i32_type().const_int(2, false);
+        phi.add_incoming(&[(&some_num, &then_bb), (&some_num, &cont_bb)]);
     }
 
     fn compile_expr(&self, expr: Box<Node>) -> IntValue {
         match *expr {
             Node::Number(num) => self.context.i32_type().const_int(num as u64, false),
+
             Node::Bool(b) => match b {
                 true => self.context.bool_type().const_int(1, false),
                 false => self.context.bool_type().const_int(0, false),
             },
+
             Node::UnaryOp(op, expr) => {
                 let value = self.compile_expr(expr);
                 match op {
@@ -187,10 +259,12 @@ impl Compiler {
                     _ => unreachable!(),
                 }
             }
+
             Node::Var(id) => {
-				let var = self.variables.get(&id).unwrap();
-				self.builder.build_load(*var, &id).into_int_value()
-			},
+                let var = self.variables.get(&id).unwrap();
+                self.builder.build_load(*var, &id).into_int_value()
+            }
+
             Node::Expr(left, op, right) => {
                 let l_val = self.compile_expr(left);
                 let r_val = self.compile_expr(right);
