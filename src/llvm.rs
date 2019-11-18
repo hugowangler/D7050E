@@ -20,7 +20,7 @@ use crate::{ast::Node, operators::Opcode, types::LiteralType, parse::statement_p
 
 macro_rules! extract_next {
     ($statement:tt) => {
-        match **$statement.unwrap() {
+        match *$statement.unwrap() {
             Node::VarValue {
                 var: _,
                 expr: _,
@@ -230,14 +230,14 @@ impl Compiler {
 
     /// Compiles all of the statements in a block
     fn compile_block(&mut self, statement: &Box<Node>, block: &BasicBlock) {
-        let mut next_statement = Some(statement);
+        let mut next_statement = Some(statement.clone());
 
         // While the current statement contains a next statement compile it
         while match next_statement {
             Some(_) => true,
             None => false,
         } {
-            self.compile_stmnt(next_statement.unwrap(), block);
+            self.compile_stmnt(&next_statement.clone().unwrap(), block);
 
             next_statement = extract_next!(next_statement);
         }
@@ -246,7 +246,7 @@ impl Compiler {
     /// Compiles a statement and returns the instruction value along with a bool which indactes
     /// if the statement was a return statement
     fn compile_stmnt(&mut self, statement: &Box<Node>, block: &BasicBlock) {
-        match **statement {
+        match *statement.clone() {
             Node::Let { var, expr, .. } => {
                 // Get variable identifier
                 let id = match *var {
@@ -388,8 +388,8 @@ impl Compiler {
     }
 
     fn compile_expr(&self, expr: &Box<Node>) -> IntValue {
-        match **expr {
-            Node::Number(num) => self.context.i32_type().const_int(num as u64, false),
+        match &**expr {
+            Node::Number(num) => self.context.i32_type().const_int(*num as u64, false),
 
             Node::Bool(b) => match b {
                 true => self.context.bool_type().const_int(1, false),
@@ -405,7 +405,7 @@ impl Compiler {
             }
 
             Node::Var(id) => {
-                let var = self.variables.get(&id).unwrap();
+                let var = self.variables.get(id).unwrap();
                 self.builder.build_load(*var, &id).into_int_value()
             }
 
