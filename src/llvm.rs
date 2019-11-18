@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, ffi::CStr};
 
 use inkwell::{
     basic_block::BasicBlock,
@@ -7,20 +7,20 @@ use inkwell::{
     execution_engine::{ExecutionEngine, JitFunction},
     module::Module,
     // passes::PassManager,
-    // types::BasicTypeEnum,
+    types::BasicTypeEnum,
     values::{
-        /*BasicValueEnum, FloatValue,*/ FunctionValue, /*InstructionValue,*/ IntValue,
+        BasicValueEnum, FunctionValue, /*InstructionValue,*/ IntValue,
         PointerValue,
     },
     IntPredicate,
     OptimizationLevel,
 };
 
-use crate::{ast::Node, operators::Opcode, parse::statement_parser};
+use crate::{ast::Node, operators::Opcode, types::LiteralType, parse::statement_parser};
 
 macro_rules! extract_next {
     ($statement:tt) => {
-        match *$statement.unwrap() {
+        match **$statement.unwrap() {
             Node::VarValue {
                 var: _,
                 expr: _,
@@ -78,14 +78,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         .module
         .create_jit_execution_engine(OptimizationLevel::None)?;
 
-    let u32_type = compiler.context.i32_type();
-    let fn_type = u32_type.fn_type(&[], false);
+    let i32_type = compiler.context.i32_type();
+    let fn_type = i32_type.fn_type(&[], false);
     let function = compiler.module.add_function("main", fn_type, None);
     let basic_block = compiler.context.append_basic_block(&function, "entry");
     compiler.builder.position_at_end(&basic_block);
     compiler.curr_fn = Some(function);
 
-    compiler.compile_block(input, &basic_block);
+    compiler.compile_block(&input, &basic_block);
     compiler.module.print_to_stderr();
 
     let fun_expr: JitFunction<ExprFunc> =
@@ -143,8 +143,93 @@ impl Compiler {
         alloca
     }
 
+	/// Compiles a program by declaring its functions and compiling them
+	fn compile_program(&mut self, program: Vec<Box<Node>>) {
+		let mut funcs: HashMap<&str, &Box<Node>> = HashMap::new();
+		
+		// Create all of the functions in program
+		for func in program.iter() {
+			let (name, params, r_type, body) = match &**func {
+				Node::Func{name, params, r_type, body} => (name, params, r_type, body),
+				_ => unreachable!()
+			};
+
+			// Store function bodies for compiling specific functions
+			funcs.insert(name, body);
+
+			// Get the param types and names
+			let mut param_types: Vec<BasicTypeEnum> = vec![];
+			let mut param_names: Vec<&str> = vec![];
+			for param in params.iter() {
+				match **param {
+					Node::FuncParam(ref param, param_type, _) => {
+						match **param {
+							Node::Var(ref name) => param_names.push(name),
+							_ => unreachable!()
+						}
+
+						match param_type {
+							LiteralType::I32 => param_types.push(self.context.i32_type().into()),
+							LiteralType::Bool => param_types.push(self.context.bool_type().into()),
+							_ => unreachable!()
+						}
+					},
+					_ => unreachable!()
+				}
+			}
+	
+			// Create the function type
+			let fn_type = if let Some(typ) = r_type {
+				match typ {
+					LiteralType::I32 => {
+						let i32_type = self.context.i32_type();
+						i32_type.fn_type(&param_types, false)
+					},
+					LiteralType::Bool => {
+						let bool_type = self.context.bool_type();
+						bool_type.fn_type(&param_types, false)
+					}
+					_ => unreachable!()
+				}
+			} else {
+				let void_type = self.context.void_type();
+				void_type.fn_type(&param_types, false)
+			};
+
+			let new_func = self.module.add_function(name, fn_type, None);
+
+			// Set param names
+			for (param, name) in new_func.get_param_iter().zip(param_names.iter()) {
+				param.into_int_value().set_name(name);
+			}
+
+			self.context.append_basic_block(&new_func, "entry");
+		}
+
+		for (name, body) in funcs.iter() {
+			let func = self.module.get_function(name).unwrap();
+			self.compile_fn(func, body);
+		}
+	}
+
+	fn compile_fn(&mut self, func: FunctionValue, body: &Box<Node>) {
+		self.curr_fn = Some(func);
+
+		// allocate parameters
+		for param in func.get_param_iter() {
+			let name = param.into_int_value().get_name().to_string_lossy().into_owned();
+			let alloca = self.create_entry_block_alloca(&name, &func.get_first_basic_block().unwrap());
+
+			self.builder.build_store(alloca, param);
+			self.variables.insert(name, alloca);
+		}
+
+		// compile body
+		self.compile_block(body, &func.get_first_basic_block().unwrap());
+	}
+
     /// Compiles all of the statements in a block
-    fn compile_block(&mut self, statement: Box<Node>, block: &BasicBlock) {
+    fn compile_block(&mut self, statement: &Box<Node>, block: &BasicBlock) {
         let mut next_statement = Some(statement);
 
         // While the current statement contains a next statement compile it
@@ -152,7 +237,7 @@ impl Compiler {
             Some(_) => true,
             None => false,
         } {
-            self.compile_stmnt(next_statement.clone().unwrap(), block);
+            self.compile_stmnt(next_statement.unwrap(), block);
 
             next_statement = extract_next!(next_statement);
         }
@@ -160,8 +245,8 @@ impl Compiler {
 
     /// Compiles a statement and returns the instruction value along with a bool which indactes
     /// if the statement was a return statement
-    fn compile_stmnt(&mut self, statement: Box<Node>, block: &BasicBlock) {
-        match *statement {
+    fn compile_stmnt(&mut self, statement: &Box<Node>, block: &BasicBlock) {
+        match **statement {
             Node::Let { var, expr, .. } => {
                 // Get variable identifier
                 let id = match *var {
@@ -171,7 +256,7 @@ impl Compiler {
                     },
                     _ => unreachable!(),
                 };
-                let expr_val = self.compile_expr(expr);
+                let expr_val = self.compile_expr(&expr);
 
                 // Allocate local variable on stack
                 let alloca = self.create_entry_block_alloca(&id, block);
@@ -184,7 +269,7 @@ impl Compiler {
                     Node::Var(id) => id,
                     _ => unreachable!(),
                 };
-                let expr_val = self.compile_expr(expr);
+                let expr_val = self.compile_expr(&expr);
 
                 // Get the variables pointer value and store new value
                 let var = self.variables.get(&id).unwrap();
@@ -192,30 +277,30 @@ impl Compiler {
             }
 
             Node::Return { expr, .. } => {
-                let ret_val = self.compile_expr(expr);
+                let ret_val = self.compile_expr(&expr);
                 self.builder.build_return(Some(&ret_val));
             }
 
             Node::If {
                 cond, statement, ..
-            } => self.compile_if(cond, statement),
+            } => self.compile_if(&cond, &statement),
 
             Node::IfElse {
                 cond,
                 if_statement,
                 else_statement,
                 ..
-            } => self.compile_if_else(cond, if_statement, else_statement),
+            } => self.compile_if_else(&cond, &if_statement, &else_statement),
 
             Node::While {
                 cond, statement, ..
-            } => self.compile_while(cond, statement),
+            } => self.compile_while(&cond, &statement),
 
             _ => unimplemented!("compile_stmnt: Node {:?}", statement),
         }
     }
 
-    fn compile_while(&mut self, cond: Box<Node>, statement: Box<Node>) {
+    fn compile_while(&mut self, cond: &Box<Node>, statement: &Box<Node>) {
         let func = self.fn_value();
 
 		// build branches
@@ -228,12 +313,12 @@ impl Compiler {
 		
 		// build cond block
 		self.builder.position_at_end(&cond_bb);
-		let cond_res = self.compile_expr(cond.clone());
+		let cond_res = self.compile_expr(cond);
 		self.builder.build_conditional_branch(cond_res, &do_bb, &cont_bb);
 
         // build do block
         self.builder.position_at_end(&do_bb);
-        self.compile_block(statement.clone(), &do_bb);
+        self.compile_block(statement, &do_bb);
 
         // continue while loop
         self.builder.build_unconditional_branch(&cond_bb);
@@ -247,7 +332,7 @@ impl Compiler {
     }
 
     /// Compiles if statements with else and/or elseif
-    fn compile_if_else(&mut self, cond: Box<Node>, if_stmnt: Box<Node>, else_stmnt: Box<Node>) {
+    fn compile_if_else(&mut self, cond: &Box<Node>, if_stmnt: &Box<Node>, else_stmnt: &Box<Node>) {
         let func = self.fn_value();
         let cond = self.compile_expr(cond);
 
@@ -278,7 +363,7 @@ impl Compiler {
     }
 
     /// Compiles plain if statements
-    fn compile_if(&mut self, cond: Box<Node>, statement: Box<Node>) {
+    fn compile_if(&mut self, cond: &Box<Node>, statement: &Box<Node>) {
         let func = self.fn_value();
         let cond = self.compile_expr(cond);
 
@@ -302,8 +387,8 @@ impl Compiler {
         phi.add_incoming(&[(&some_num, &then_bb), (&some_num, &cont_bb)]);
     }
 
-    fn compile_expr(&self, expr: Box<Node>) -> IntValue {
-        match *expr {
+    fn compile_expr(&self, expr: &Box<Node>) -> IntValue {
+        match **expr {
             Node::Number(num) => self.context.i32_type().const_int(num as u64, false),
 
             Node::Bool(b) => match b {
@@ -312,7 +397,7 @@ impl Compiler {
             },
 
             Node::UnaryOp(op, expr) => {
-                let value = self.compile_expr(expr);
+                let value = self.compile_expr(&expr);
                 match op {
                     Opcode::Sub => self.builder.build_int_neg(value, "neg"),
                     _ => unreachable!(),
@@ -325,8 +410,8 @@ impl Compiler {
             }
 
             Node::Expr(left, op, right) => {
-                let l_val = self.compile_expr(left);
-                let r_val = self.compile_expr(right);
+                let l_val = self.compile_expr(&left);
+                let r_val = self.compile_expr(&right);
 
                 match op {
                     Opcode::Add => self.builder.build_int_add(l_val, r_val, "add"),

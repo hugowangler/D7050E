@@ -23,7 +23,7 @@ pub fn run(path: &Path) -> io::Result<()> {
 
     match parse(input) {
         Ok(parsed_prog) => {
-            // println!("parsed_prog = {:#?}", &parsed_prog);
+            println!("parsed_prog = {:#?}", &parsed_prog);
             match type_check(parsed_prog.clone()) {
                 Ok(_) => match interp(parsed_prog) {
                     Some(res) => io::stdout().write_fmt(format_args!("{:?}\n", res)),
