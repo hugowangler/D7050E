@@ -221,7 +221,7 @@ impl Compiler {
 			self.builder.build_store(alloca, param);
 			self.variables.insert(name, alloca);
 		}
-
+		
 		// compile body
 		self.compile_block(body, &func.get_first_basic_block().unwrap());
 
@@ -233,10 +233,7 @@ impl Compiler {
         let mut next_statement = Some(statement.clone());
 
         // While the current statement contains a next statement compile it
-        while match next_statement {
-            Some(_) => true,
-            None => false,
-        } {
+        while let Some(_) = next_statement {
             self.compile_stmnt(&next_statement.clone().unwrap(), block);
             next_statement = extract_next!(next_statement);
         }
