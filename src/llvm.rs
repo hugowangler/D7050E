@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error, ffi::CStr};
+use std::{collections::HashMap, error::Error};
 
 use inkwell::{
     basic_block::BasicBlock,
@@ -6,17 +6,16 @@ use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
     module::Module,
-    // passes::PassManager,
     types::BasicTypeEnum,
     values::{
-        BasicValueEnum, FunctionValue, /*InstructionValue,*/ IntValue,
+        FunctionValue, IntValue,
         PointerValue,
     },
     IntPredicate,
     OptimizationLevel,
 };
 
-use crate::{ast::Node, operators::Opcode, types::LiteralType, parse::statement_parser};
+use crate::{ast::Node, operators::Opcode, types::LiteralType, parse::program_parser};
 
 macro_rules! extract_next {
     ($statement:tt) => {
@@ -57,19 +56,16 @@ macro_rules! extract_next {
     };
 }
 
-type ExprFunc = unsafe extern "C" fn() -> i32;
+type MainFn = unsafe extern "C" fn() -> i32;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
-    let input = statement_parser::parse(
+    let input = program_parser::parse(
         "
-		let mut test: i32 = 0;
-
-		while (test < 0) {
-			test = test + 1;
+		fn main() -> i32 {
+			let x: i32 = 10;
+			return x;
 		}
-		
-		return test;
-		",
+		".to_string()
     )
     .unwrap();
     println!("ast = {:?}", &input);
@@ -78,20 +74,20 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         .module
         .create_jit_execution_engine(OptimizationLevel::None)?;
 
-    let i32_type = compiler.context.i32_type();
-    let fn_type = i32_type.fn_type(&[], false);
-    let function = compiler.module.add_function("main", fn_type, None);
-    let basic_block = compiler.context.append_basic_block(&function, "entry");
-    compiler.builder.position_at_end(&basic_block);
-    compiler.curr_fn = Some(function);
+    // let i32_type = compiler.context.i32_type();
+    // let fn_type = i32_type.fn_type(&[], false);
+    // let function = compiler.module.add_function("main", fn_type, None);
+    // let basic_block = compiler.context.append_basic_block(&function, "entry");
+    // compiler.builder.position_at_end(&basic_block);
+    // compiler.curr_fn = Some(function);
 
-    compiler.compile_block(&input, &basic_block);
+    compiler.compile_program(&input);
     compiler.module.print_to_stderr();
 
-    let fun_expr: JitFunction<ExprFunc> =
+    let fun_expr: JitFunction<MainFn> =
         unsafe { execution_engine.get_function("main").ok().unwrap() };
     unsafe {
-        println!("\nexection result = {}", fun_expr.call());
+        println!("exection result = {}", fun_expr.call());
     }
 
     // function.verify(true);
@@ -114,7 +110,7 @@ impl Compiler {
         let context = Context::create();
         Compiler {
             builder: context.create_builder(),
-            module: context.create_module("main"),
+            module: context.create_module("program"),
             context: context,
             variables: HashMap::new(),
             curr_fn: None,
@@ -144,7 +140,7 @@ impl Compiler {
     }
 
 	/// Compiles a program by declaring its functions and compiling them
-	fn compile_program(&mut self, program: Vec<Box<Node>>) {
+	fn compile_program(&mut self, program: &Vec<Box<Node>>) {
 		let mut funcs: HashMap<&str, &Box<Node>> = HashMap::new();
 		
 		// Create all of the functions in program
@@ -206,6 +202,7 @@ impl Compiler {
 			self.context.append_basic_block(&new_func, "entry");
 		}
 
+		// Compile the functions
 		for (name, body) in funcs.iter() {
 			let func = self.module.get_function(name).unwrap();
 			self.compile_fn(func, body);
@@ -215,17 +212,20 @@ impl Compiler {
 	fn compile_fn(&mut self, func: FunctionValue, body: &Box<Node>) {
 		self.curr_fn = Some(func);
 
+		let block = &func.get_first_basic_block().unwrap();
 		// allocate parameters
 		for param in func.get_param_iter() {
 			let name = param.into_int_value().get_name().to_string_lossy().into_owned();
-			let alloca = self.create_entry_block_alloca(&name, &func.get_first_basic_block().unwrap());
-
+			let alloca = self.create_entry_block_alloca(&name, &block);
+			self.builder.position_at_end(&block);
 			self.builder.build_store(alloca, param);
 			self.variables.insert(name, alloca);
 		}
 
 		// compile body
 		self.compile_block(body, &func.get_first_basic_block().unwrap());
+
+		// self.builder.build_return(Some(&self.context.i32_type()));
 	}
 
     /// Compiles all of the statements in a block
@@ -238,7 +238,6 @@ impl Compiler {
             None => false,
         } {
             self.compile_stmnt(&next_statement.clone().unwrap(), block);
-
             next_statement = extract_next!(next_statement);
         }
     }
