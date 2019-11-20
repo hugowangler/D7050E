@@ -61,8 +61,9 @@ type MainFn = unsafe extern "C" fn() -> i32;
 pub fn main() -> Result<(), Box<dyn Error>> {
     let input = program_parser::parse(
         "
-		fn main() -> i32 {
+		fn main(a: i32, b: bool) -> i32 {
 			let x: i32 = 10;
+			let y: i32 = 20;
 			return x;
 		}
 		".to_string()
@@ -222,8 +223,10 @@ impl Compiler {
 			self.variables.insert(name, alloca);
 		}
 		
+		self.builder.position_at_end(&block);
+
 		// compile body
-		self.compile_block(body, &func.get_first_basic_block().unwrap());
+		self.compile_block(body, &block);
 
 		// self.builder.build_return(Some(&self.context.i32_type()));
 	}
