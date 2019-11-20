@@ -20,6 +20,7 @@ use std::path::Path;
 
 #[allow(unused)]
 fn main() {
-    program::run(Path::new("input.rs"));
-    llvm::main();
+	// run with false = interp and true = compile (llvm)
+    program::run(Path::new("input.rs"), true);
+    // llvm::main();
 }

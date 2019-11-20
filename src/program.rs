@@ -6,9 +6,11 @@ use std::{
     path::Path,
 };
 
-use crate::{interpreter::interp, parse::program_parser::parse, type_checker::type_check};
+use crate::{interpreter::interp, parse::program_parser::parse, type_checker::type_check, llvm};
 
-pub fn run(path: &Path) -> io::Result<()> {
+/// Runs a program defined in the path, if compile is false the program is interpreted
+/// otherwise it will be compiled with llvm
+pub fn run(path: &Path, compile: bool) -> io::Result<()> {
     let display = path.display();
     let mut file = match File::open(&path) {
         Ok(file) => file,
@@ -25,9 +27,18 @@ pub fn run(path: &Path) -> io::Result<()> {
         Ok(parsed_prog) => {
             // println!("parsed_prog = {:#?}", &parsed_prog);
             match type_check(parsed_prog.clone()) {
-                Ok(_) => match interp(parsed_prog) {
-                    Some(res) => io::stdout().write_fmt(format_args!("{:?}\n", res)),
-                    None => Ok(()),
+                Ok(_) => {
+					if !compile {
+						match interp(parsed_prog) {
+                    		Some(res) => return io::stdout().write_fmt(format_args!("{:?}\n", res)),
+							None => return Ok(()),
+						}
+					} else {
+						match llvm::compile(&parsed_prog) {
+							Ok(_) => return Ok(()),
+							Err(_) => panic!("Error while compiling llvm")
+						}
+					}
                 },
                 Err(e) => {
                     for error in e.errors.iter() {
@@ -37,6 +48,6 @@ pub fn run(path: &Path) -> io::Result<()> {
                 }
             }
         }
-        Err(e) => panic!("Error while parsing program: {:?}", e),
+        Err(e) => panic!("Error while parsing 'input.txt': {:?}", e),
     }
 }
