@@ -7,7 +7,7 @@ use inkwell::{
     execution_engine::JitFunction,
     module::Module,
     types::BasicTypeEnum,
-    values::{BasicValueEnum, FunctionValue, IntValue, PointerValue},
+    values::{BasicValueEnum, FunctionValue, IntValue, PointerValue, InstructionValue},
     IntPredicate, OptimizationLevel,
 };
 
@@ -193,7 +193,7 @@ impl Compiler {
 
                         match param_type {
                             LiteralType::I32 => param_types.push(self.context.i32_type().into()),
-                            LiteralType::Bool => param_types.push(self.context.bool_type().into()),
+                            LiteralType::Bool => param_types.push(self.context.i32_type().into()),
                             _ => unreachable!(),
                         }
                     }
@@ -339,7 +339,9 @@ impl Compiler {
 
             Node::While {
                 cond, statement, ..
-            } => self.compile_while(&cond, &statement),
+			} => self.compile_while(&cond, &statement),
+			
+			Node::FuncCall { name, args, .. } => {self.compile_call(&name, &args);},
 
             _ => unimplemented!("compile_stmnt: Node {:?}", statement),
         }
@@ -372,7 +374,7 @@ impl Compiler {
     }
 
     fn compile_while(&mut self, cond: &Box<Node>, statement: &Box<Node>) {
-        let func = self.fn_value();
+		let func = self.fn_value();
 
         // build branches
         let cond_bb = self.context.append_basic_block(&func, "cond");
@@ -383,7 +385,7 @@ impl Compiler {
 
         // build cond block
         self.builder.position_at_end(&cond_bb);
-        let cond_res = self.compile_expr(cond);
+		let cond_res = self.compile_expr(cond);
         self.builder
             .build_conditional_branch(cond_res, &do_bb, &cont_bb);
 
@@ -404,8 +406,12 @@ impl Compiler {
 
     /// Compiles if statements with else and/or elseif
     fn compile_if_else(&mut self, cond: &Box<Node>, if_stmnt: &Box<Node>, else_stmnt: &Box<Node>) {
-        let func = self.fn_value();
-        let cond = self.compile_expr(cond);
+		let func = self.fn_value();
+		
+		// create compare that will be used as cond
+		let cond = self.compile_expr(cond);
+		// let zero_const = self.context.i32_type().const_int(0, false);
+		// let cond = self.builder.build_int_compare(IntPredicate::NE, cond, zero_const, "ifcond");
 
         // build branches
         let then_bb = self.context.append_basic_block(&func, "then");
@@ -435,7 +441,7 @@ impl Compiler {
 
     /// Compiles plain if statements
     fn compile_if(&mut self, cond: &Box<Node>, statement: &Box<Node>) {
-        let func = self.fn_value();
+		let func = self.fn_value();
         let cond = self.compile_expr(cond);
 
         // build then and continue branch
@@ -463,8 +469,8 @@ impl Compiler {
             Node::Number(num) => self.context.i32_type().const_int(*num as u64, false),
 
             Node::Bool(b) => match b {
-                true => self.context.bool_type().const_int(1, false),
-                false => self.context.bool_type().const_int(0, false),
+                true => self.context.i32_type().const_int(1, false),
+                false => self.context.i32_type().const_int(0, false),
             },
 
             Node::UnaryOp(op, expr) => {
@@ -485,14 +491,13 @@ impl Compiler {
             Node::Expr(left, op, right) => {
                 let l_val = self.compile_expr(&left);
                 let r_val = self.compile_expr(&right);
-
                 match op {
                     Opcode::Add => self.builder.build_int_add(l_val, r_val, "add"),
                     Opcode::Sub => self.builder.build_int_sub(l_val, r_val, "sub"),
                     Opcode::Mul => self.builder.build_int_mul(l_val, r_val, "mul"),
                     Opcode::Div => self.builder.build_int_signed_div(l_val, r_val, "div"),
                     Opcode::AND => self.builder.build_and(l_val, r_val, "and"),
-                    Opcode::OR => self.builder.build_or(l_val, r_val, "and"),
+                    Opcode::OR => self.builder.build_or(l_val, r_val, "or"),
                     Opcode::EQ => {
                         self.builder
                             .build_int_compare(IntPredicate::EQ, l_val, r_val, "eq")
@@ -615,14 +620,14 @@ mod tests {
     #[test]
     fn test_if() {
         let input = parse(
-            "fn main() -> bool {
+            "fn main() -> i32 {
 				let a: bool = true;
 
 				if (a) {
-					return true;
+					return 1;
 				}
 
-				return false;
+				return 0;
 			}"
             .to_string(),
         )
@@ -630,21 +635,21 @@ mod tests {
 
         let mut compiler = Compiler::new();
         let res = compiler.compile(&input).unwrap();
-        assert!(unsafe { res.call() } != 0);
+        assert_eq!(unsafe { res.call() }, 1);
     }
 
     #[test]
     fn test_if_else() {
         let input = parse(
-            "fn main() -> bool {
+            "fn main() -> i32 {
 				let a: bool = true;
 
 				if (a == false) {
-					return true;
+					return 1;
 				} else {
-					return false;
+					return 2;
 				}
-				return true;
+				return 3;
 			}"
             .to_string(),
         )
@@ -652,21 +657,21 @@ mod tests {
 
         let mut compiler = Compiler::new();
         let res = compiler.compile(&input).unwrap();
-        assert_eq!(unsafe { res.call() }, 0);
+        assert_eq!(unsafe { res.call() }, 2);
     }
 
     #[test]
     fn test_elseif() {
         let input = parse(
-            "fn main() -> bool {
+            "fn main() -> i32 {
 				let a: bool = false;
 
 				if (a == true) {
-					return true;
+					return 1;
 				} else if (a || true) {
-					return a;
+					return 2;
 				}
-				return true;
+				return 3;
 			}"
             .to_string(),
         )
@@ -674,23 +679,23 @@ mod tests {
 
         let mut compiler = Compiler::new();
         let res = compiler.compile(&input).unwrap();
-        assert_eq!(unsafe { res.call() }, 0);
+        assert_eq!(unsafe { res.call() }, 2);
     }
 
     #[test]
     fn test_elseif_else() {
         let input = parse(
-            "fn main() -> bool {
+            "fn main() -> i32 {
 				let a: bool = false;
 
 				if (a && true) {
-					return true;
+					return 1;
 				} else if (a == true) {
-					return true;
+					return 2;
 				} else {
-					return a;
+					return 3;
 				}
-				return true;
+				return 4;
 			}"
             .to_string(),
         )
@@ -698,7 +703,7 @@ mod tests {
 
         let mut compiler = Compiler::new();
         let res = compiler.compile(&input).unwrap();
-        assert_eq!(unsafe { res.call() }, 0);
+        assert_eq!(unsafe { res.call() }, 3);
     }
 
     #[test]
@@ -785,27 +790,28 @@ mod tests {
     	assert_eq!(unsafe{res.call()}, 1000);
 	}
 
-	// #[test]
-    // fn test_func_param() {
-    // 	let input = parse(
-    // 		"fn main() -> i32 {
-	// 			return test(5, false);
-	// 		}
+	#[test]
+    fn test_func_param() {
+    	let input = parse(
+    		"fn main() -> i32 {
+				return test(5, false);
+			}
 			
-	// 		fn test(a: i32, b: bool) -> bool {
-	// 			if (a == 5 && b == false) {
-	// 				return true;
-	// 			} else {
-	// 				return false;
-	// 			}
-	// 		}
-    // 		".to_string()
-    // 	).unwrap();
+			fn test(a: i32, b: bool) -> i32 {
+				if ((a == 5) && (b == false)) {
+					return 1;
+				} else {
+					return 2;
+				}
+				return 3;
+			}
+    		".to_string()
+    	).unwrap();
 
-    // 	let mut compiler = Compiler::new();
-    // 	let res = compiler.compile(&input).unwrap();
-    // 	assert_eq!(unsafe{res.call()}, 1000);
-	// }
+    	let mut compiler = Compiler::new();
+    	let res = compiler.compile(&input).unwrap();
+    	assert_eq!(unsafe{res.call()}, 1);
+	}
 	
 
 }
