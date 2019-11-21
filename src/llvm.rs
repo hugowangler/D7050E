@@ -4,7 +4,7 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    execution_engine::{ExecutionEngine, JitFunction},
+    execution_engine::JitFunction,
     module::Module,
     types::BasicTypeEnum,
     values::{BasicValueEnum, FunctionValue, IntValue, PointerValue},
@@ -106,22 +106,23 @@ impl Compiler {
             functions: HashMap::new(),
             curr_fn: None,
         }
-	}
-	
-	/// Compiles a parsed program and returns the resulting JitFunction<MainFn>
-	/// which can den be called to execute the program
-	pub fn compile(&mut self, program: &Vec<Box<Node>>) -> JitFunction<MainFn> {
-		let execution_engine = self
-			.module
-			.create_jit_execution_engine(OptimizationLevel::None)
-			.unwrap();
+    }
 
-		self.compile_program(program);
-		self.module.print_to_stderr(); // LLVM IR
+    /// Compiles a parsed program and returns the resulting JitFunction<MainFn>
+    /// which can den be called to execute the program
+    pub fn compile(&mut self, program: &Vec<Box<Node>>) -> JitFunction<MainFn> {
+        let execution_engine = self
+            .module
+            .create_jit_execution_engine(OptimizationLevel::None)
+            .unwrap();
 
-		let res: JitFunction<MainFn> = unsafe { execution_engine.get_function("main").ok().unwrap() };
-		res
-	}
+        self.compile_program(program);
+        self.module.print_to_stderr(); // LLVM IR
+
+        let res: JitFunction<MainFn> =
+            unsafe { execution_engine.get_function("main").ok().unwrap() };
+        res
+    }
 
     /// Gets the function value of the function which is currently being compiled
     fn fn_value(&self) -> FunctionValue {

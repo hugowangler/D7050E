@@ -6,7 +6,9 @@ use std::{
     path::Path,
 };
 
-use crate::{interpreter::interp, llvm::Compiler, parse::program_parser::parse, type_checker::type_check};
+use crate::{
+    interpreter::interp, llvm::Compiler, parse::program_parser::parse, type_checker::type_check,
+};
 
 /// Runs a program defined in the path, if compile is false the program is interpreted
 /// otherwise it will be compiled with llvm
@@ -36,9 +38,13 @@ pub fn run(path: &Path, compile: bool) -> io::Result<()> {
                             None => return Ok(()),
                         }
                     } else {
-						let mut compiler = Compiler::new();
-						let main_fn = compiler.compile(&parsed_prog);
-						unsafe{return io::stdout().write_fmt(format_args!{"Execution result = {}\n", main_fn.call()})}
+                        let mut compiler = Compiler::new();
+                        let main_fn = compiler.compile(&parsed_prog);
+                        unsafe {
+                            return io::stdout().write_fmt(
+                                format_args! {"Execution result = {}\n", main_fn.call()},
+                            );
+                        }
                     }
                 }
                 Err(e) => {
