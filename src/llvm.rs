@@ -57,9 +57,17 @@ type MainFn = unsafe extern "C" fn() -> i32;
 pub fn main() -> Result<(), Box<dyn Error>> {
     let input = program_parser::parse(
         "
-		fn main() -> i32 {
-			let x: i32 = 5;
-			return x;
+		fn main() -> bool {
+			let a: bool = false;
+
+			if (a && true) {
+				return true;
+			} else if (a == 10) {
+				return true;
+			} else {
+				return a;
+			}
+			return true;
 		}
 		"
         .to_string(),
@@ -88,8 +96,7 @@ pub struct Compiler {
     context: Context,
     builder: Builder,
     module: Module,
-    variables: HashMap<String, PointerValue>,
-    functions: HashMap<String, FunctionValue>,
+    scopes: Vec<HashMap<String, PointerValue>>,
     curr_fn: Option<FunctionValue>,
 }
 
@@ -102,15 +109,14 @@ impl Compiler {
             builder: context.create_builder(),
             module: context.create_module("program"),
             context: context,
-            variables: HashMap::new(),
-            functions: HashMap::new(),
+            scopes: vec![],
             curr_fn: None,
         }
     }
 
     /// Compiles a parsed program and returns the resulting JitFunction<MainFn>
     /// which can den be called to execute the program
-    pub fn compile(&mut self, program: &Vec<Box<Node>>) -> JitFunction<MainFn> {
+    pub fn compile(&mut self, program: &Vec<Box<Node>>) -> Option<JitFunction<MainFn>> {
         let execution_engine = self
             .module
             .create_jit_execution_engine(OptimizationLevel::None)
@@ -119,8 +125,8 @@ impl Compiler {
         self.compile_program(program);
         self.module.print_to_stderr(); // LLVM IR
 
-        let res: JitFunction<MainFn> =
-            unsafe { execution_engine.get_function("main").ok().unwrap() };
+        let res: Option<JitFunction<MainFn>> =
+            unsafe { execution_engine.get_function("main").ok() };
         res
     }
 
@@ -130,12 +136,19 @@ impl Compiler {
             Some(function) => function,
             None => panic!("No current function set"),
         }
-    }
-
-    /// Gets the function value of a specific function in the program
-    fn get_function(&self, name: &str) -> FunctionValue {
-        *self.functions.get(name).unwrap()
-    }
+	}
+	
+	/// Gets a variable from the vector of scopes by searching in reverse order
+	/// (allows for shadowing)
+	fn get_variable(&self, id: &str) -> PointerValue {
+		for scope in self.scopes.iter().rev() {
+			match scope.get(id) {
+				Some(ptr) => return *ptr,
+				None => ()
+			};
+		}
+		unreachable!()
+	}
 
     /// Creates a new stack allocation instruction in the entry block of the function
     fn create_entry_block_alloca(&mut self, name: &str, block: &BasicBlock) -> PointerValue {
@@ -147,7 +160,7 @@ impl Compiler {
         }
 
         let alloca = builder.build_alloca(self.context.i32_type(), name);
-        self.variables.insert(name.to_string(), alloca);
+        self.scopes.last_mut().unwrap().insert(name.to_string(), alloca);
         alloca
     }
 
@@ -211,9 +224,6 @@ impl Compiler {
 
             let new_func = self.module.add_function(name, fn_type, None);
 
-            // Store FunctionValue for calling function in other functions
-            self.functions.insert(name.to_string(), new_func);
-
             // Set param names
             for (param, name) in new_func.get_param_iter().zip(param_names.iter()) {
                 param.into_int_value().set_name(name);
@@ -230,7 +240,10 @@ impl Compiler {
     }
 
     fn compile_fn(&mut self, func: FunctionValue, r_type: &Option<LiteralType>, body: &Box<Node>) {
-        self.curr_fn = Some(func);
+		self.curr_fn = Some(func);
+
+		// New scope for function
+		self.scopes.push(HashMap::new());
 
         let block = &func.get_first_basic_block().unwrap();
         // allocate parameters
@@ -243,7 +256,7 @@ impl Compiler {
             let alloca = self.create_entry_block_alloca(&name, &block);
             self.builder.position_at_end(&block);
             self.builder.build_store(alloca, param);
-            self.variables.insert(name, alloca);
+            self.scopes.last_mut().unwrap().insert(name, alloca);
         }
 
         self.builder.position_at_end(&block);
@@ -256,18 +269,23 @@ impl Compiler {
             self.builder
                 .position_at_end(&func.get_first_basic_block().unwrap());
             self.builder.build_return(None);
-        }
+		}
+		
+		// Done with func so pop scope
+		self.scopes.pop();
     }
 
     /// Compiles all of the statements in a block
     fn compile_block(&mut self, statement: &Box<Node>, block: &BasicBlock) {
+		self.scopes.push(HashMap::new());
         let mut next_statement = Some(statement.clone());
 
         // While the current statement contains a next statement compile it
         while let Some(_) = next_statement {
             self.compile_stmnt(&next_statement.clone().unwrap(), block);
             next_statement = extract_next!(next_statement);
-        }
+		}
+		self.scopes.pop();
     }
 
     /// Compiles a statement and returns the instruction value along with a bool which indactes
@@ -299,8 +317,8 @@ impl Compiler {
                 let expr_val = self.compile_expr(&expr);
 
                 // Get the variables pointer value and store new value
-                let var = self.variables.get(&id).unwrap();
-                self.builder.build_store(*var, expr_val);
+				let var = self.get_variable(&id);
+                self.builder.build_store(var, expr_val);
             }
 
             Node::Return { expr, .. } => {
@@ -342,7 +360,11 @@ impl Compiler {
             .collect();
 
         self.builder
-            .build_call(self.get_function(name), args_val.as_slice(), "tmp")
+            .build_call(
+                self.module.get_function(name).unwrap(),
+                args_val.as_slice(),
+                "tmp",
+            )
             .try_as_basic_value()
             .left()
             .unwrap()
@@ -454,8 +476,8 @@ impl Compiler {
             }
 
             Node::Var(id) => {
-                let var = self.variables.get(id).unwrap();
-                self.builder.build_load(*var, &id).into_int_value()
+				let var = self.get_variable(&id);
+                self.builder.build_load(var, &id).into_int_value()
             }
 
             Node::FuncCall { name, args, .. } => self.compile_call(&name, &args),
@@ -500,4 +522,290 @@ impl Compiler {
             _ => unimplemented!("Node '{:?}' not supported", *expr),
         }
     }
+}
+
+// TESTS
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parse::program_parser::parse;
+
+    #[test]
+    fn variable_add() {
+        let input = parse(
+            "fn main() -> i32 {
+				let a: i32 = 10;
+				let b: i32 = 10 + a;
+				return b;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 20);
+	}
+	
+	#[test]
+    fn bool_and() {
+        let input = parse(
+            "fn main() -> i32 {
+				return true && false;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 0);
+    }
+
+    #[test]
+    fn variable_bool() {
+        let input = parse(
+            "fn main() -> bool {
+				let a: bool = false && true;
+				let b: bool = a || false;
+				return b;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert!(unsafe { res.call() } == 0);
+    }
+
+    #[test]
+    fn variable_update() {
+        let input = parse(
+            "fn main() -> i32 {
+				let a: i32 = 10;
+				let b: i32 = 10 + a;
+				a = a + b;
+				return a;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 30);
+    }
+
+    #[test]
+    fn precedence_num() {
+        let input = parse(
+            "fn main() -> i32 {
+				return 2 * 10 - 3 + 2 * 5;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 27);
+    }
+
+    #[test]
+    fn test_if() {
+        let input = parse(
+            "fn main() -> bool {
+				let a: bool = true;
+
+				if (a) {
+					return true;
+				}
+
+				return false;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert!(unsafe { res.call() } != 0);
+    }
+
+    #[test]
+    fn test_if_else() {
+        let input = parse(
+            "fn main() -> bool {
+				let a: bool = true;
+
+				if (a == false) {
+					return true;
+				} else {
+					return false;
+				}
+				return true;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 0);
+    }
+
+    #[test]
+    fn test_elseif() {
+        let input = parse(
+            "fn main() -> bool {
+				let a: bool = false;
+
+				if (a == true) {
+					return true;
+				} else if (a || true) {
+					return a;
+				}
+				return true;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 0);
+    }
+
+    #[test]
+    fn test_elseif_else() {
+        let input = parse(
+            "fn main() -> bool {
+				let a: bool = false;
+
+				if (a && true) {
+					return true;
+				} else if (a == true) {
+					return true;
+				} else {
+					return a;
+				}
+				return true;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 0);
+    }
+
+    #[test]
+    fn test_while() {
+        let input = parse(
+            "fn main() -> i32 {
+				let num: i32 = 0;
+
+				while (num < 10) {
+					num = num + 1;
+				}
+				return num;
+			}"
+            .to_string(),
+        )
+        .unwrap();
+
+        let mut compiler = Compiler::new();
+        let res = compiler.compile(&input).unwrap();
+        assert_eq!(unsafe { res.call() }, 10);
+    }
+
+    #[test]
+    fn test_fib() {
+    	let input = parse(
+    		"fn main() -> i32 {
+    			return fib(20);
+    		}
+
+    		fn fib(n: i32) -> i32 {
+    			if (n <= 1) {
+    				return n;
+				}
+				
+    			return fib(n - 2) + fib(n - 1);
+    		}
+
+    		".to_string()
+    	).unwrap();
+
+    	let mut compiler = Compiler::new();
+    	let res = compiler.compile(&input).unwrap();
+    	assert_eq!(unsafe{res.call()}, 6765);
+	}
+
+	#[test]
+    fn test_shadowing() {
+    	let input = parse(
+    		"fn main() -> i32 {
+				let a: i32 = 20;
+				
+				if (a == 20) {
+					let a: i32 = 1000;
+				}
+				return a;
+    		}
+    		".to_string()
+    	).unwrap();
+
+    	let mut compiler = Compiler::new();
+    	let res = compiler.compile(&input).unwrap();
+    	assert_eq!(unsafe{res.call()}, 20);
+	}
+
+	#[test]
+    fn test_shadowing_use_shadow() {
+    	let input = parse(
+    		"fn main() -> i32 {
+				let a: i32 = 20;
+				
+				if (a == 20) {
+					let a: i32 = 1000;
+					if (a == 1000) {
+						return a;
+					}
+				}
+				return a;
+    		}
+    		".to_string()
+    	).unwrap();
+
+    	let mut compiler = Compiler::new();
+    	let res = compiler.compile(&input).unwrap();
+    	assert_eq!(unsafe{res.call()}, 1000);
+	}
+
+	// #[test]
+    // fn test_func_param() {
+    // 	let input = parse(
+    // 		"fn main() -> i32 {
+	// 			return test(5, false);
+	// 		}
+			
+	// 		fn test(a: i32, b: bool) -> bool {
+	// 			if (a == 5 && b == false) {
+	// 				return true;
+	// 			} else {
+	// 				return false;
+	// 			}
+	// 		}
+    // 		".to_string()
+    // 	).unwrap();
+
+    // 	let mut compiler = Compiler::new();
+    // 	let res = compiler.compile(&input).unwrap();
+    // 	assert_eq!(unsafe{res.call()}, 1000);
+	// }
+	
+
 }

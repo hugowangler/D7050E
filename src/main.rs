@@ -22,5 +22,6 @@ use std::path::Path;
 fn main() {
     // run with false = interp and true = compile (llvm)
     program::run(Path::new("input.rs"), true);
+
     // llvm::main();
 }

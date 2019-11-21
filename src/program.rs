@@ -27,7 +27,7 @@ pub fn run(path: &Path, compile: bool) -> io::Result<()> {
 
     match parse(input) {
         Ok(parsed_prog) => {
-            // println!("parsed_prog = {:#?}", &parsed_prog);
+            println!("parsed_prog = {:#?}", &parsed_prog);
             match type_check(parsed_prog.clone()) {
                 Ok(_) => {
                     if !compile {
@@ -39,7 +39,10 @@ pub fn run(path: &Path, compile: bool) -> io::Result<()> {
                         }
                     } else {
                         let mut compiler = Compiler::new();
-                        let main_fn = compiler.compile(&parsed_prog);
+                        let main_fn = compiler
+                            .compile(&parsed_prog)
+                            .ok_or_else(|| io::stderr().write(b"Unable to JIT execute function"))
+                            .unwrap();
                         unsafe {
                             return io::stdout().write_fmt(
                                 format_args! {"Execution result = {}\n", main_fn.call()},
