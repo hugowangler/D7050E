@@ -56,14 +56,10 @@ type MainFn = unsafe extern "C" fn() -> i32;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     let input = program_parser::parse(
-		"
+        "
 		fn main() -> i32 {
-			let x: i32 = fibonacci(0);
+			let x: i32 = 5;
 			return x;
-		}
-
-		fn fibonacci(n: i32) -> i32 {
-			return n;
 		}
 		"
         .to_string(),
@@ -78,8 +74,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     compiler.compile_program(&input);
     compiler.module.print_to_stderr();
 
-    let res: JitFunction<MainFn> =
-        unsafe { execution_engine.get_function("main").ok().unwrap() };
+    let res: JitFunction<MainFn> = unsafe { execution_engine.get_function("main").ok().unwrap() };
     unsafe {
         println!("exection result = {}", res.call());
     }
@@ -89,25 +84,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Compiles a parsed program
-pub fn compile(program: &Vec<Box<Node>>) -> Result<(), Box<dyn Error>>{
-	let mut compiler = Compiler::new();
-	let execution_engine = compiler.module.create_jit_execution_engine(OptimizationLevel::None)?;
-	
-	compiler.compile_program(program);
-	compiler.module.print_to_stderr(); // LLVM IR
-
-	let res: JitFunction<MainFn> = unsafe {
-		execution_engine.get_function("main").ok().unwrap()	
-	};
-	unsafe {
-		println!("execution result: {}", res.call());
-	}
-
-	Ok(())
-}
-
-struct Compiler {
+pub struct Compiler {
     context: Context,
     builder: Builder,
     module: Module,
@@ -119,7 +96,7 @@ struct Compiler {
 /// The compiler assumes that it compiles programs which have been type checked and
 /// should therefore not contain any errors
 impl Compiler {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let context = Context::create();
         Compiler {
             builder: context.create_builder(),
@@ -129,7 +106,22 @@ impl Compiler {
             functions: HashMap::new(),
             curr_fn: None,
         }
-    }
+	}
+	
+	/// Compiles a parsed program and returns the resulting JitFunction<MainFn>
+	/// which can den be called to execute the program
+	pub fn compile(&mut self, program: &Vec<Box<Node>>) -> JitFunction<MainFn> {
+		let execution_engine = self
+			.module
+			.create_jit_execution_engine(OptimizationLevel::None)
+			.unwrap();
+
+		self.compile_program(program);
+		self.module.print_to_stderr(); // LLVM IR
+
+		let res: JitFunction<MainFn> = unsafe { execution_engine.get_function("main").ok().unwrap() };
+		res
+	}
 
     /// Gets the function value of the function which is currently being compiled
     fn fn_value(&self) -> FunctionValue {
@@ -217,9 +209,9 @@ impl Compiler {
             funcs.insert(name, (&r_type, body));
 
             let new_func = self.module.add_function(name, fn_type, None);
-			
-			// Store FunctionValue for calling function in other functions
-			self.functions.insert(name.to_string(), new_func);
+
+            // Store FunctionValue for calling function in other functions
+            self.functions.insert(name.to_string(), new_func);
 
             // Set param names
             for (param, name) in new_func.get_param_iter().zip(param_names.iter()) {
