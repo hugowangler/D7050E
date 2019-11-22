@@ -594,5 +594,19 @@ When implementing the LLVM backend I started of by implementing the `crust.rs` e
 The LLVM backend can generate and compile code from my language but no optimization have been implemented. Also, since my language does not have a borrow checker aliasing is possible so noalias could not be passed anywhere.
 
 # Overal course goals and learning outcomes
-In this course I have learned a lot when it comes to programming since I have implemented a quite large project myself. Comparing this to other courses I enjoyed the practical work required to implement the compiler. I also learned a lot of Rust since I have no prior experiance of the language. Although it should be noted that the learning curve in the beginning of the course was quite big since both Rust and parsing had to be learned.
+In this course I have learned a lot when it comes to programming since I have implemented a quite large project myself. Comparing this to other courses I enjoyed the heavy practical work required to implement the compiler. I also learned a lot of Rust since I have no prior experiance of the language. Although it should be noted that the learning curve in the beginning of the course was quite big since I had to learn Rust.
 
+Regarding the course goals and what I have done:
+
+- Parser:
+  - A lot of work with creating a suitable AST
+  - Maybe not so much learnt about lexical and syntax analysis since I used LALRPOP which basically did this for me without having to "know" a lot.
+  - EBNF
+- Interpreter
+  - Had to come up with a way of handling variables in order to allow for shadowing etc.
+- Type checker
+  - Worker a lot with figuring out a way to report multiple errors
+  - How to display errors in a suitable and easy way
+- LLVM IR and JIT compilation
+
+In general it feels like I learned a lot more about the practical parts of a compiler than the theoretical part. Mostly because I spent the most of the course on implementing the compiler and not really thinking or creating the theoretical analysis like SoS and EBNF.
