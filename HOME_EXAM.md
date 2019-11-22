@@ -145,78 +145,119 @@ No error messages, except the already existing error messages from LALRPOP, have
 - Give an as complete as possible Structural Operetional Semantics (SOS) for your language
  
 ### Operators
-Given a expression $e$ in the state $\sigma$  that evaluates to a value $n$ or boolean $b$ the following can be said for the operators in the language
+Given a expression $`e`$ in the state $`\sigma`$  that evaluates to a value $`n`$ or boolean $`b`$ the following can be said for the operators in the language
 
 #### Arithmetic
-Addition:\
-$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 + e2, \sigma \rang \ \Downarrow \ n1 + n2}$
+Addition:
+```math
+\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 + e2, \sigma \rang \ \Downarrow \ n1 + n2}
+```
 
-Subtraction:\
-$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 - e2, \sigma \rang \ \Downarrow \ n1 - n2}$
+Subtraction:
+```math
+\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 - e2, \sigma \rang \ \Downarrow \ n1 - n2}
+```
 
-Multiplication:\
-$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 * e2, \sigma \rang \ \Downarrow \ n1 * n2}$
+Multiplication:
+```math
+\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 * e2, \sigma \rang \ \Downarrow \ n1 * n2}
+```
 
-Division:\
-$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 / e2, \sigma \rang \ \Downarrow \ n1 / n2}$
+Division:
+```math
+\frac{\lang e1, \sigma \rang \ \Downarrow \ n1 \; \lang e2, \sigma \rang \ \Downarrow \ n2}{\lang e1 / e2, \sigma \rang \ \Downarrow \ n1 / n2}
+```
 
-Unary:\
-$\frac{\lang e1, \sigma \rang \ \Downarrow \ n1}{\lang -e1, \sigma \rang \ \Downarrow \ -n1}$
+Unary:
+```math
+\frac{\lang e1, \sigma \rang \ \Downarrow \ n1}{\lang -e1, \sigma \rang \ \Downarrow \ -n1}
+```
 
 #### Boolean
-AND:\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b1}{\lang e1 \ \&\& \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{AND} \ b2}$
+AND:
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b1}{\lang e1 \ \&\& \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{AND} \ b2}
+```
 
-OR:\
-$\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ || \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{OR} \ b2}$
+OR:
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ b1 \; \lang e2, \sigma \rang \Downarrow \ b2}{\lang e1 \ || \ e2, \sigma \rang \ \Downarrow \ b1 \ \text{OR} \ b2}
+```
 
-Less than (<):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ < \ e2, \sigma \rang \ \Downarrow \ n1 \ < \ n2}$
+Less than (<):
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ < \ e2, \sigma \rang \ \Downarrow \ n1 \ < \ n2}
+```
 
-Greaten than (>):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ > \ e2, \sigma \rang \ \Downarrow \ n1 \ > \ n2}$
+Greaten than (>):
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ > \ e2, \sigma \rang \ \Downarrow \ n1 \ > \ n2}
+```
 
-Less than or equals (<=):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ <= \ e2, \sigma \rang \ \Downarrow \ n1 \ <= \ n2}$
+Less than or equals (<=):
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ <= \ e2, \sigma \rang \ \Downarrow \ n1 \ <= \ n2}
+```
 
-Greater than or equals (>=):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ >= \ e2, \sigma \rang \ \Downarrow \ n1 \ >= \ n2}$
+Greater than or equals (>=):
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ >= \ e2, \sigma \rang \ \Downarrow \ n1 \ >= \ n2}
+```
 
-Equals (==):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ == \ e2, \sigma \rang \ \Downarrow \ n1 \ == \ n2}$
+Equals (==):
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ == \ e2, \sigma \rang \ \Downarrow \ n1 \ == \ n2}
+```
 
-Not equals (!=):\
-$\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ n1 \ != \ n2}$
+Not equals (!=):
+```math
+\frac{\lang e1, \sigma \rang \Downarrow \ n1 \; \lang e2, \sigma \rang \Downarrow \ n2}{\lang e1 \ != \ e2, \sigma \rang \ \Downarrow \ n1 \ != \ n2}
+```
 
 #### Commands
 
 **if** statement:
 
-$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c1, \sigma \rang \ \Downarrow \ \sigma'}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma'}$
+```math
+\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c1, \sigma \rang \ \Downarrow \ \sigma'}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma'}
+```
 
-$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false} \quad \lang c2, \sigma \rang \ \Downarrow \ \sigma''}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma''}$
+```math
+\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false} \quad \lang c2, \sigma \rang \ \Downarrow \ \sigma''}{\lang \text{if } b \text{ then } c1 \text{ else } c2, \sigma \rang \ \Downarrow \ \sigma''}
+```
 
 Not sure how to do this for elseif
 
 **while** statement:
+```math
+\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false} \quad \lang c, \sigma \rang \Downarrow \sigma' }{\text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma}
+```
 
-$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{false} \quad \lang c, \sigma \rang \Downarrow \sigma' }{\text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma}$
-
-$\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c, \sigma \rang \ \Downarrow \ \sigma' \quad \lang \text{while } b \text{ do } c,\sigma' \rang \ \Downarrow \ \sigma''}{\lang \text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma''}$
+```math
+\frac{\lang b, \sigma \rang \ \Downarrow \ \text{true} \quad \lang c, \sigma \rang \ \Downarrow \ \sigma' \quad \lang \text{while } b \text{ do } c,\sigma' \rang \ \Downarrow \ \sigma''}{\lang \text{while } b \text{ do } c, \sigma \rang \ \Downarrow \ \sigma''}
+```
 
 **let** statement:\
-$\frac{}{\lang \text{let }x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}$
+```math
+\frac{}{\lang \text{let }x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}
+```
 
-**return** statement:\
-$\frac{\lang e, \sigma \rang \Downarrow n}{\lang \text{return } e, \sigma \rang \Downarrow n }$
+**return** statement:
+```math
+\frac{\lang e, \sigma \rang \Downarrow n}{\lang \text{return } e, \sigma \rang \Downarrow n }
+```
 
-assignment:\
-$\frac{}{\lang x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}$
+assignment:
+```math
+\frac{}{\lang x := n, \sigma \rang \ \Downarrow \ \sigma [x := n]}
+```
 
-functions: \
-Given a list of arguments $\overrightarrow{v} = [v_1, \ldots, v_n]$ the call of function $p$ will evaulate to a value $n$ (the return value, if any) according to
+functions:
+Given a list of arguments $`\overrightarrow{v} = [v_1, \ldots, v_n]`$ the call of function $`p`$ will evaulate to a value $`n`$ (the return value, if any) according to
 
-$\frac{\lang p, \sigma \rang}{\lang p(\overrightarrow{v}), \sigma \rang \ \Darr \ \lang n, \sigma \rang}$
+```math
+\frac{\lang p, \sigma \rang}{\lang p(\overrightarrow{v}), \sigma \rang \ \Darr \ \lang n, \sigma \rang}
+```
 
 - Explain (in text) what an interpretation of your example should produce, do that by dry running your given example step by step. Relate back to the SOS rules. You may skip repetions to avoid cluttering.
 
@@ -248,75 +289,119 @@ the interpreter will panic with the message:
 
 ### Expressions
 #### Arithmetic
-Addition:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 + e2) \ : \ i32}$
+Addition:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 + e2) \ : \ i32}
+```
 
-Subtraction:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 - e2) \ : \ i32}$
+Subtraction:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 - e2) \ : \ i32}
+```
 
-Division:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 / e2) \ : \ i32}$
+Division:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 / e2) \ : \ i32}
+```
 
-Multiplication:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 * e2) \ : \ i32}$
+Multiplication:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 * e2) \ : \ i32}
+```
 
-Unary:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32}{\Gamma \ \vdash (-e1) \ : \ i32}$
+Unary:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32}{\Gamma \ \vdash (-e1) \ : \ i32}
+```
 
 #### Boolean
-AND:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ \&\& \ e2) \ : \ bool}$
+AND:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ \&\& \ e2) \ : \ bool}
+```
 
-OR:\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ || \ e2) \ : \ bool}$
+OR:
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ || \ e2) \ : \ bool}
+```
 
-Less than (<):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ < \ e2) \ : \ bool}$
+Less than (<):
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ < \ e2) \ : \ bool}
+```
 
-Greaten than (>):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ > \ e2) \ : \ bool}$
+Greaten than (>):
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ > \ e2) \ : \ bool}
+```
 
-Less than or equals (<=):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ <= \ e2) \ : \ bool}$
+Less than or equals (<=):
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ <= \ e2) \ : \ bool}
+```
 
-Greater than or equals (>=):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ >= \ e2) \ : \ bool}$
+Greater than or equals (>=):
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ >= \ e2) \ : \ bool}
+```
 
-Equals (==):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}$ and
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}$
+Equals (==):
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}
+```
+or
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ == \ e2) \ : \ bool}
+```
 
-Not equals (!=):\
-$\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$ and
-$\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}$
+Not equals (!=):
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ bool \quad \Gamma \ \vdash \ e2 \ : \ bool}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}
+```
+or
+```math
+\frac{\Gamma \ \vdash \ e1 \ : \ i32 \quad \Gamma \ \vdash \ e2 \ : \ i32}{\Gamma \ \vdash (e1 \ != \ e2) \ : \ bool}
+```
 
 ### Assignment
-Given the type $\tau$, variable $x$ and value $n$
+Given the type $`\tau`$, variable $`x`$ and value $`n`$
 
-$\frac{\Gamma \ \vdash \ x \ : \ \tau \quad \Gamma \ \vdash \ n \ : \ \tau}{\lang x := n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}$
+```math
+\frac{\Gamma \ \vdash \ x \ : \ \tau \quad \Gamma \ \vdash \ n \ : \ \tau}{\lang x := n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}
+```
 
 ### **let** assignment
-$\frac{\Gamma \ \vdash \ n \ : \ \tau}{\lang \text{let} \  x \ : \ \tau \ := \ n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}$
+```math
+\frac{\Gamma \ \vdash \ n \ : \ \tau}{\lang \text{let} \  x \ : \ \tau \ := \ n, \sigma \rang \ \Darr \ \Gamma \ \vdash x \ : \ \tau}
+```
 
 ### **while** statement
-The condition, $b$, of the while statement  
+The condition, $`b`$, of the while statement  
 
-$\frac{}{\Gamma \ \vdash b \ : \ bool}$
+$`
+\frac{}{\Gamma \ \vdash b \ : \ bool}
+`$
 
 ### **if/elseif** statement
-The conditions, $b_i$, of the if- and elseif-statements
+The conditions, $`b_i`$, of the if- and elseif-statements
 
-$\frac{}{\Gamma \ \vdash b_i \ : \ bool}$
+$`
+\frac{}{\Gamma \ \vdash b_i \ : \ bool}
+`$
 
 ### Functions
-Given the function $p$ with the type of its return type
+Given the function $`p`$ with the type of its return type
 
-$\frac{\Gamma \ \vdash p \ : \ \tau \quad \lang p, \sigma \rang \ \Darr \ n}{\Gamma \ \vdash n \ : \ \tau}$
+$`
+\frac{\Gamma \ \vdash p \ : \ \tau \quad \lang p, \sigma \rang \ \Darr \ n}{\Gamma \ \vdash n \ : \ \tau}
+`$
 
 #### Parameters and arguments
-Given a function with parameters $p1, \dotsb, p_i$ and arguments $a1, \dotsb, a_i$ then for every parameter and argument
+Given a function with parameters $`p1, \dotsb, p_i`$ and arguments $`a1, \dotsb, a_i`$ then for every parameter and argument
 
-$\frac{\Gamma \ \vdash p_i \ : \ \tau}{\Gamma \ \vdash a_i \ : \ \tau}$
+$`
+\frac{\Gamma \ \vdash p_i \ : \ \tau}{\Gamma \ \vdash a_i \ : \ \tau}
+`$
 
 - Demonstrate each "type rule" by an example
 
@@ -463,9 +548,9 @@ Error: Mismatched type for operation '=='
                 Note: expected i32, found bool
 Could not compile 'input.rs'
 ```
-By this it can be seen that the type checker assumes that the type of ```a``` is correct when checking the assignment of ```b``` which indeed would be correctly typed if the former variable would have been correctly assigned a i32 value. This is done by concluding that `5 * true` would evaluate to a i32 value if it was correctly typed and then the entire expression `5 + 5 * true` will be correctly typed.
+By this it can be seen that the type checker assumes that the type of `a` is correct when checking the assignment of `b` which indeed would be correctly typed if the former variable would have been correctly assigned a i32 value. This is done by concluding that `5 * true` would evaluate to a i32 value if it was correctly typed and then the entire expression `5 + 5 * true` will be correctly typed.
 
-Thus by following this pattern the type checker is able to continue type checking and reporting new errors, which can be seen when it reports that the assignment of ```c``` is incorrect (boolean equals requires the same type on each side).
+Thus by following this pattern the type checker is able to continue type checking and reporting new errors, which can be seen when it reports that the assignment of `c` is incorrect (boolean equals requires the same type on each side).
 
 The type checker also makes sure that functions with a specified return type always returns. This is done by going through each function and making sure that a tailing return statement or a return inside an else-statement exists. If this is not the case the error is reported along with all other type errors found.
 
@@ -480,7 +565,8 @@ It also needs to keep track of the kind of borrow that have been made to a resou
 
 # Your LLVM backend
 - Let your backend produces LLVM-IR for your example program.
-```LLVM IR
+
+```llvm
 ModuleID = 'program'
 source_filename = "program"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
