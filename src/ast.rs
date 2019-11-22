@@ -63,7 +63,10 @@ pub enum Node {
     Break,
     Continue,
 
-    Return(Box<Node>),
+    Return {
+        expr: Box<Node>,
+        next: Option<Box<Node>>,
+    },
 }
 
 impl Node {
@@ -102,6 +105,10 @@ impl Node {
             Node::FuncCall {
                 name: _,
                 args: _,
+                ref mut next,
+            } => *next = Some(node),
+            Node::Return {
+                expr: _,
                 ref mut next,
             } => *next = Some(node),
             _ => {

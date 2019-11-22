@@ -70,7 +70,7 @@ pub fn visit(node: Box<Node>, context: &mut Context, funcs: &mut Funcs) -> Value
             body,
         } => eval_func_dec(&name, &params, r_type, &body, funcs),
         Node::FuncCall { name, args, next } => eval_func_call(&name, args, context, funcs, next),
-        Node::Return(expr) => visit(expr, context, funcs),
+        Node::Return { expr, .. } => visit(expr, context, funcs),
         // Print node used for easier debugging
         Node::Print { expr, next } => {
             let var_name = match *expr.clone() {

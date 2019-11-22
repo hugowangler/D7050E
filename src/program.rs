@@ -6,9 +6,13 @@ use std::{
     path::Path,
 };
 
-use crate::{interpreter::interp, parse::program_parser::parse, type_checker::type_check};
+use crate::{
+    interpreter::interp, llvm::Compiler, parse::program_parser::parse, type_checker::type_check,
+};
 
-pub fn run(path: &Path) -> io::Result<()> {
+/// Runs a program defined in the path, if compile is false the program is interpreted
+/// otherwise it will be compiled with llvm
+pub fn run(path: &Path, compile: bool) -> io::Result<()> {
     let display = path.display();
     let mut file = match File::open(&path) {
         Ok(file) => file,
@@ -23,12 +27,29 @@ pub fn run(path: &Path) -> io::Result<()> {
 
     match parse(input) {
         Ok(parsed_prog) => {
-            // println!("parsed_prog = {:#?}", &parsed_prog);
+            println!("parsed_prog = {:#?}", &parsed_prog);
             match type_check(parsed_prog.clone()) {
-                Ok(_) => match interp(parsed_prog) {
-                    Some(res) => io::stdout().write_fmt(format_args!("{:?}\n", res)),
-                    None => Ok(()),
-                },
+                Ok(_) => {
+                    if !compile {
+                        match interp(parsed_prog) {
+                            Some(res) => {
+                                return io::stdout().write_fmt(format_args!("{:?}\n", res))
+                            }
+                            None => return Ok(()),
+                        }
+                    } else {
+                        let mut compiler = Compiler::new();
+                        let main_fn = compiler
+                            .compile(&parsed_prog)
+                            .ok_or_else(|| io::stderr().write(b"Unable to JIT execute function"))
+                            .unwrap();
+                        unsafe {
+                            return io::stdout().write_fmt(
+                                format_args! {"Execution result = {}\n", main_fn.call()},
+                            );
+                        }
+                    }
+                }
                 Err(e) => {
                     for error in e.errors.iter() {
                         io::stderr().write_fmt(format_args!("Error: {}\n", error))?
@@ -37,6 +58,6 @@ pub fn run(path: &Path) -> io::Result<()> {
                 }
             }
         }
-        Err(e) => panic!("Error while parsing program: {:?}", e),
+        Err(e) => panic!("Error while parsing 'input.txt': {:?}", e),
     }
 }

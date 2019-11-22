@@ -91,7 +91,7 @@ fn func_dec(func: Box<Node>, funcs: &mut Funcs, err: &mut TypeErrors) {
 /// Checks if the body of a function that returns has a tail expression
 fn does_return(body: Box<Node>) -> bool {
     match *body {
-        Node::Return(_) => true,
+        Node::Return { .. } => true,
         Node::VarValue {
             var: _,
             expr: _,
@@ -178,11 +178,13 @@ fn visit(
         Node::FuncCall { name, args, next } => {
             func_call(&name, args, context, funcs, curr_func, err, next)
         }
-        Node::Return(expr) => check_return(
+        Node::Return { expr, next } => check_return(
             visit(expr, context, funcs, curr_func, err),
+            context,
             funcs,
             curr_func,
             err,
+            next,
         ),
         Node::If {
             cond,
@@ -273,17 +275,20 @@ fn check_cond(
 
 fn check_return(
     val: Result<LiteralType, Option<LiteralType>>,
+    context: &mut Context,
     funcs: &Funcs,
     curr_func: &str,
     err: &mut TypeErrors,
+    next: Option<Box<Node>>,
 ) -> Result<LiteralType, Option<LiteralType>> {
     let fn_r_type = match funcs.get(curr_func) {
         Some(func) => func.get_r_type(),
         _ => unreachable!(),
     };
 
-    let val = get_type!(val);
+    let mut ret = Ok(fn_r_type);
 
+    let val = get_type!(val);
     if let Some(val_type) = val {
         if fn_r_type != val_type {
             err.insert_err(ErrorKind::FnReturnMismatch {
@@ -291,10 +296,14 @@ fn check_return(
                 expected: fn_r_type,
                 found: val_type,
             });
-            return Err(Some(fn_r_type));
+            ret = Err(Some(fn_r_type));
         }
     }
-    Ok(fn_r_type)
+
+    match next {
+        Some(next) => visit(next, context, funcs, curr_func, err),
+        None => ret,
+    }
 }
 
 fn func_call(

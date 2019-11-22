@@ -5,6 +5,7 @@ mod ast;
 mod context;
 mod function;
 mod interpreter;
+mod llvm;
 mod operators;
 mod parse;
 mod program;
@@ -19,5 +20,6 @@ use std::path::Path;
 
 #[allow(unused)]
 fn main() {
-    program::run(Path::new("input.rs"));
+    program::run(Path::new("input.rs"), false);	// interp
+	// program::run(Path::new("input.rs"), true); // compile
 }
